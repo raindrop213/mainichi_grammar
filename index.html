@@ -7,31 +7,31 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      line-height: 1.6;
+      line-height:1.5;
       margin: 0;
       padding: 0;
       background: #f9f9f9;
       color: #333;
     }
     header {
+      text-align: center;
       position: fixed; /* 固定位置 */
       top: 0; /* 距离顶部 0 */
+      height: 50px;
       width: 100%; /* 占满宽度 */
       z-index: 1000; /* 保证在最前方 */
       background: #0078d4; /* 确保背景颜色覆盖内容 */
       color: #fff;
-      padding: 10px 0;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* 添加阴影 */
     }
     nav ul {
+      padding: 0;
       display: flex;
       list-style: none;
       justify-content: center;
-      margin: 0;
-      padding: 0;
     }
     nav li {
-      margin: 0 15px;
+      margin: 0 20px;
     }
     nav a {
       color: #fff;
@@ -75,9 +75,9 @@
       position: fixed;
       top: 50px;
       right: 0;
-      width: 50%; /* 占宽度的一半 */
+      width: 50%; /* 默认宽度为50% */
       height: auto;
-      max-height: 80%;
+      max-height: 90%;
       background: #fff;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       z-index: 1000;
@@ -86,6 +86,12 @@
       display: none;
       word-wrap: break-word;
       overflow-x: hidden; /* 隐藏横向滚动条 */
+    }
+    /* 添加媒体查询 */
+    @media (max-width: 768px) { /* 当屏幕宽度小于等于768px时 */
+      #detail-popup {
+        width: 80%; /* 弹窗宽度变为80% */
+      }
     }
     #detail-header {
       position:fixed; /* 固定在弹窗顶部 */
@@ -99,14 +105,13 @@
     }
     
     #detail-content {
-      padding: 45px 20px 20px 20px;
+      padding: 45px 20px 45px 20px;
     }
     img {
       width: 100%;
     }
     .gray {
       color: #00000033;
-      text-decoration: none;
       margin-left: 55px;
     }
     .bold {
@@ -146,6 +151,32 @@
     margin-bottom: .25em;
     opacity: .8
 }
+#navigation-buttons {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      z-index: 10000;
+    }
+    #navigation-buttons button {
+      width: 30%;
+      height: 50px;
+      margin: 2px;
+      font-size: 16px;
+      border: none;
+      cursor: pointer;
+      color: #fff;
+      background-color: #00000023;
+    }
+    #navigation-buttons button:hover {
+      background: #0078d4;
+    }
+    #toggle-gray{
+    position: absolute;
+    right: 20px;
+    top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -156,6 +187,7 @@
         <li><a href="#" data-type="レベル順">レベル順</a></li>
         <li><a href="#" data-type="敬語">敬語</a></li>
       </ul>
+      <button id="toggle-gray">颜色开关</button>
     </nav>
   </header>
   <main>
@@ -164,6 +196,10 @@
   <div id="detail-popup">
     <div id="detail-header"></div>
     <div id="detail-content"></div>
+  </div>
+  <div id="navigation-buttons">
+    <button id="prev-button">前へ</button>
+    <button id="next-button">次へ</button>
   </div>
   <script>
     const dataFilePath = 'grammar_spider/grammar_data.json';
@@ -175,17 +211,16 @@
       '敬語': ['尊敬語', '謙譲語Ⅰ・Ⅱ', '丁寧語']
     };
 
+    let grammarData = [];
+    let grammarDetails = [];
+    let currentIndex = -1; // 跟踪当前语法项的索引
+
     document.addEventListener('DOMContentLoaded', () => {
       const navLinks = document.querySelectorAll('nav a');
       const contentDiv = document.getElementById('content');
       const detailPopup = document.getElementById('detail-popup');
-
-      // 定义通用的文件路径
-      const dataFilePath = 'grammar_spider/grammar_data.json';
-      const detailFilePath = 'grammar_spider/grammar_detail.json';
-
-      let grammarData = [];
-      let grammarDetails = [];
+      const prevButton = document.getElementById('prev-button');
+      const nextButton = document.getElementById('next-button');
 
       // 加载数据的通用函数
       function loadData() {
@@ -221,6 +256,7 @@
 
               link.addEventListener('click', event => {
                 event.preventDefault();
+                currentIndex = grammarData.findIndex(grammar => grammar.item === item.item);
                 handleLinkClick(item.item);
               });
 
@@ -272,6 +308,29 @@
         }
       }
 
+      // 按钮点击逻辑
+      function handlePrevClick(event) {
+        event.stopPropagation(); // 阻止事件冒泡
+        if (currentIndex > 0) {
+          currentIndex--;
+          const prevItem = grammarData[currentIndex];
+          handleLinkClick(prevItem.item);
+        }
+      }
+
+      function handleNextClick(event) {
+        event.stopPropagation(); // 阻止事件冒泡
+        if (currentIndex < grammarData.length - 1) {
+          currentIndex++;
+          const nextItem = grammarData[currentIndex];
+          handleLinkClick(nextItem.item);
+        }
+      }
+
+      // 绑定按钮事件
+      prevButton.addEventListener('click', handlePrevClick);
+      nextButton.addEventListener('click', handleNextClick);
+
       // 初始化逻辑
       loadData()
         .then(() => {
@@ -291,9 +350,13 @@
 
       // 点击空白处关闭弹窗
       document.addEventListener('click', event => {
-        const isClickInsidePopup = detailPopup.contains(event.target);
-        const isLink = event.target.tagName === 'A';
-        if (!isClickInsidePopup && !isLink) {
+        const isClickInsidePopup = detailPopup.contains(event.target); // 是否点击在弹窗内
+        const isClickInsideButtons = event.target === prevButton || event.target === nextButton; // 是否点击在按钮内
+        const isClickOnGrammarLink = event.target.tagName === 'A' && event.target.closest('#content'); // 是否点击在语法链接上
+        const isClickOnHeader = event.target.closest('header'); // 是否点击在顶栏内
+
+        // 如果点击的目标不是弹窗、按钮、语法链接或顶栏，则关闭弹窗
+        if (!isClickInsidePopup && !isClickInsideButtons && !isClickOnGrammarLink && !isClickOnHeader) {
           detailPopup.style.display = 'none';
         }
       });
@@ -303,6 +366,6 @@
         event.stopPropagation();
       });
     });
-</script>
+  </script>
 </body>
 </html>
