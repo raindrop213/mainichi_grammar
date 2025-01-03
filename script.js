@@ -1,87 +1,77 @@
-const grammarFile = 'mainichi/grammar.json';
-let grammarData = null; // 全局变量，用于存储预处理后的数据
+// Assuming the JSON data is stored as `grammarData`:
+const grammarData = [
+  {
+    "name": "～あぐねる",
+    "category": "あいうえお",
+    "first": "あ",
+    "level": "Ｎ０文法",
+    "item": "n0-aguneru",
+    "link": "https://mainichi-nonbiri.com/grammar/n0-aguneru/",
+    "detail": ""
+  },
+  {
+    "name": "～あげる／やる／差し上げる（さしあげる）",
+    "category": "あいうえお",
+    "first": "あ",
+    "level": "Ｎ４文法",
+    "item": "n4-ageru",
+    "link": "https://mainichi-nonbiri.com/grammar/n4-ageru/",
+    "detail": ""
+  }
+  // Add all other entries here
+];
 
-// 页面加载完成后，加载 JSON 数据并默认显示 "五十音順"
-window.onload = () => {
-  fetch(grammarFile)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(data => {
-      const rawData = Array.isArray(data) && data.length > 0 ? data[0].grammar : null;
-      if (!rawData || !Array.isArray(rawData)) {
-        throw new Error('Invalid data structure: grammar data not found');
-      }
-      grammarData = preprocessData(rawData); // 预处理数据
-      loadTopCategory('五十音順'); // 默认加载五十音順
-    })
-    .catch(error => console.error('Error loading grammar file:', error));
+// Sort categories and prepare a mapping for display
+const categories = {
+  五十音順: "あいうえお",
+  レベル順: ["Ｎ０文法", "Ｎ１文法", "Ｎ２文法", "Ｎ３文法", "Ｎ４文法", "Ｎ５文法"],
+  敬語: ["尊敬語", "謙譲語Ⅰ・Ⅱ", "丁寧語"],
 };
 
-// 预处理数据
-function preprocessData(grammarList) {
-  const processed = {
-    '五十音順': {}, // 五十音順数据
-    'レベル順': {}, // レベル順数据
-    '敬語': {}, // 敬語数据
-  };
+// Function to render items
+function renderContent(categoryKey) {
+  const contentDiv = document.getElementById("content");
+  contentDiv.innerHTML = ""; // Clear existing content
 
-  grammarList.forEach(item => {
-    const topTitle = item.top_title;
+  if (categoryKey === "五十音順") {
+    const sortedItems = grammarData.filter(item => item.category === "あいうえお");
+    sortedItems.forEach(item => {
+      const listItem = document.createElement("div");
+      listItem.innerHTML = `<a href="${item.link}" target="_blank">${item.name}</a>`;
+      contentDiv.appendChild(listItem);
+    });
+  } else if (categoryKey === "レベル順") {
+    categories[categoryKey].forEach(level => {
+      const levelHeader = document.createElement("h3");
+      levelHeader.textContent = level;
+      contentDiv.appendChild(levelHeader);
 
-    // 初始化对应分类的对象
-    if (!processed[topTitle]) {
-      processed[topTitle] = {};
-    }
+      const levelItems = grammarData.filter(item => item.level === level);
+      levelItems.forEach(item => {
+        const listItem = document.createElement("div");
+        listItem.innerHTML = `<a href="${item.link}" target="_blank">${item.name}</a>`;
+        contentDiv.appendChild(listItem);
+      });
+    });
+  } else if (categoryKey === "敬語") {
+    categories[categoryKey].forEach(keigo => {
+      const keigoHeader = document.createElement("h3");
+      keigoHeader.textContent = keigo;
+      contentDiv.appendChild(keigoHeader);
 
-    // 将数据按 category 分类存储
-    if (!processed[topTitle][item.category]) {
-      processed[topTitle][item.category] = [];
-    }
-    processed[topTitle][item.category].push(item);
-  });
-
-  return processed;
+      // Add items dynamically if needed (currently no keigo-specific data in the JSON provided)
+    });
+  }
 }
 
-// 顶部导航栏点击事件
-document.querySelectorAll('nav a').forEach(link => {
-  link.addEventListener('click', event => {
-    event.preventDefault();
-    const topTitle = event.target.dataset.type;
-    loadTopCategory(topTitle); // 加载对应顶部分类
+// Event listeners for navigation
+document.querySelectorAll("nav a").forEach(link => {
+  link.addEventListener("click", (e) => {
+    e.preventDefault();
+    const categoryKey = e.target.dataset.type;
+    renderContent(categoryKey);
   });
 });
 
-// 加载顶部分类内容
-function loadTopCategory(topTitle) {
-  if (!grammarData || !grammarData[topTitle]) {
-    console.error(`No data available for ${topTitle}`);
-    return;
-  }
-
-  const content = document.getElementById('content');
-  content.innerHTML = ''; // 清空内容区域
-
-  const categoryData = grammarData[topTitle];
-  Object.keys(categoryData).forEach(category => {
-    const section = document.createElement('section');
-    const heading = document.createElement('h2');
-    heading.textContent = category; // 分类标题
-    section.appendChild(heading);
-
-    const list = document.createElement('ul');
-    const items = categoryData[category];
-    items.forEach(item => {
-      const listItem = document.createElement('li');
-      listItem.innerHTML = `<a href="${item.link}" target="_blank">${item.name} (${item.level})</a>`;
-      list.appendChild(listItem);
-    });
-
-    section.appendChild(list);
-    content.appendChild(section);
-  });
-}
+// Initial render
+renderContent("五十音順");

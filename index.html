@@ -4,7 +4,103 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>日语语法</title>
-  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+      color: #333;
+    }
+    header {
+      position: fixed; /* 固定位置 */
+      top: 0; /* 距离顶部 0 */
+      width: 100%; /* 占满宽度 */
+      z-index: 1000; /* 保证在最前方 */
+      background: #0078d4; /* 确保背景颜色覆盖内容 */
+      color: #fff;
+      padding: 10px 0;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* 添加阴影 */
+    }
+    nav ul {
+      display: flex;
+      list-style: none;
+      justify-content: center;
+      margin: 0;
+      padding: 0;
+    }
+    nav li {
+      margin: 0 15px;
+    }
+    nav a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    main {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    section {
+      margin-bottom: 20px;
+    }
+    h2 {
+      color: #0078d4;
+      border-bottom: 2px solid #0078d4;
+      padding-bottom: 5px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      margin-bottom: 10px;
+    }
+    a {
+      color: #0078d4;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    #detail-popup {
+      position: fixed;
+      top: 50px;
+      right: 0;
+      width: 50%; /* 占宽度的一半 */
+      height:auto;
+      max-height: 80%;
+      background: #fff;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      padding: 20px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      display: none;
+      white-space: normal; /* 强制换行 */
+      word-wrap: break-word; /* 支持长单词换行 */
+      overflow-x: hidden; /* 隐藏横向滚动条 */
+    }
+    .gray {
+      color: #00000033;
+      text-decoration: none;
+    }
+    .bold {
+      font-weight: bold;
+    }
+    .post_content dt,.post_content h2,.post_content h3,.post_content h4 {
+    font-weight: 700;
+    border-bottom: 2px solid #db8277; /* 设置2px黑色下边线 */
+  }
+  </style>
 </head>
 <body>
   <header>
@@ -19,6 +115,96 @@
   <main>
     <div id="content"></div>
   </main>
-  <script src="script.js"></script>
+  <div id="detail-popup">
+    <div id="detail-content"></div>
+  </div>
+  <script>
+    const dataFilePath = 'grammar_spider/grammar_data.json';
+    const detailFilePath = 'grammar_spider/grammar_detail.json';
+
+    const categories = {
+      '五十音順': ['あいうえお', 'かきくけこ', 'さしすせそ', 'たちつてと', 'なにぬねの', 'はひふへほ', 'まみむめも', 'や　ゆ　よ', 'らりるれろ', 'わ　を　ん'],
+      'レベル順': ['Ｎ０文法', 'Ｎ１文法', 'Ｎ２文法', 'Ｎ３文法', 'Ｎ４文法', 'Ｎ５文法'],
+      '敬語': ['尊敬語', '謙譲語Ⅰ・Ⅱ', '丁寧語']
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const navLinks = document.querySelectorAll('nav a');
+      const contentDiv = document.getElementById('content');
+      const detailPopup = document.getElementById('detail-popup');
+
+      Promise.all([fetch(dataFilePath).then(res => res.json()), fetch(detailFilePath).then(res => res.json())])
+        .then(([data, details]) => {
+          navLinks.forEach(link => {
+            link.addEventListener('click', event => {
+              event.preventDefault();
+              const categoryType = link.getAttribute('data-type');
+              renderContent(data, details, categoryType);
+            });
+          });
+
+          renderContent(data, details, '五十音順');
+        });
+
+      function renderContent(data, details, categoryType) {
+        contentDiv.innerHTML = '';
+
+        if (!categories[categoryType]) return;
+
+        categories[categoryType].forEach(subCategory => {
+          const section = document.createElement('section');
+          const heading = document.createElement('h2');
+          heading.textContent = subCategory;
+          section.appendChild(heading);
+
+          const list = document.createElement('ul');
+          data
+            .filter(item => item.category === subCategory || item.level === subCategory)
+            .forEach(item => {
+              const listItem = document.createElement('li');
+              const link = document.createElement('a');
+              link.href = '#';
+              link.textContent = item.name;
+
+              link.addEventListener('click', event => {
+                event.preventDefault();
+                const detail = details.find(detailItem => detailItem.item === item.item);
+                if (detail) {
+                  renderDetailContent(detail.content);
+                } else {
+                  renderDetailContent('<p>无法找到内容</p>');
+                }
+              });
+
+              listItem.appendChild(link);
+              list.appendChild(listItem);
+            });
+
+          section.appendChild(list);
+          contentDiv.appendChild(section);
+        });
+      }
+
+      function renderDetailContent(content) {
+        const detailContent = document.getElementById('detail-content');
+        detailContent.innerHTML = content;
+        detailPopup.style.display = 'block';
+      }
+
+      // 点击空白处关闭弹窗
+      document.addEventListener('click', (event) => {
+        const isClickInsidePopup = detailPopup.contains(event.target);
+        const isLink = event.target.tagName === 'A';
+        if (!isClickInsidePopup && !isLink) {
+          detailPopup.style.display = 'none';
+        }
+      });
+
+      // 阻止点击弹窗内容时关闭
+      detailPopup.addEventListener('click', (event) => {
+        event.stopPropagation();
+      });
+    });
+  </script>
 </body>
 </html>
