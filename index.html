@@ -179,6 +179,12 @@
     right: 20px;
     top: 10px;
     }
+      /* 高亮选中项的样式 */
+  .selected {
+    background-color: #0078d428; /* 高亮背景色 */
+    border-radius: 1px;
+    border-radius: 5px;
+  }
   </style>
 </head>
 <body>
@@ -208,19 +214,18 @@
       // 配置文件路径
       const dataFilePath = 'grammar_spider/grammar_data.json';
       const detailFilePath = 'grammar_spider/grammar_detail.json';
-
-      // 定义分类和数据
+  
       const categories = {
         '五十音順': ['あいうえお', 'かきくけこ', 'さしすせそ', 'たちつてと', 'なにぬねの', 'はひふへほ', 'まみむめも', 'や　ゆ　よ', 'らりるれろ', 'わ　を　ん'],
         'レベル順': ['Ｎ０文法', 'Ｎ１文法', 'Ｎ２文法', 'Ｎ３文法', 'Ｎ４文法', 'Ｎ５文法'],
         '敬語': ['尊敬語', '謙譲語Ⅰ・Ⅱ', '丁寧語']
       };
-
+  
       let grammarData = [];
       let grammarDetails = [];
       let currentIndex = -1; // 当前语法项索引
-      let isGrayEnabled = true; // 初始灰色字体状态
-
+      let isGrayEnabled = true;
+  
       // DOM 元素
       const toggleButton = document.getElementById('toggle-gray');
       const contentDiv = document.getElementById('content');
@@ -229,21 +234,40 @@
       const detailContent = document.getElementById('detail-content');
       const prevButton = document.getElementById('prev-button');
       const nextButton = document.getElementById('next-button');
+      
+      
+      // 添加一个选中的样式类
+      const HIGHLIGHT_CLASS = 'selected'; // 定义高亮样式
 
+      // 更新高亮样式并滚动到选中项
+      function highlightAndScrollTo(index) {
+        // 移除所有高亮
+        document.querySelectorAll('li').forEach(item => {
+          item.classList.remove('selected'); // 使用静态样式
+        });
+
+        // 高亮当前选中项
+        const selectedItem = contentDiv.querySelectorAll('li')[index];
+        if (selectedItem) {
+          selectedItem.classList.add('selected'); // 添加高亮样式
+          selectedItem.scrollIntoView({ behavior: 'smooth', block: 'center' }); // 平滑滚动到中间
+        }
+      }
+  
       // 更新所有带 .gray 的元素颜色
       function updateGrayElements() {
         document.querySelectorAll('.gray').forEach(element => {
           element.style.color = isGrayEnabled ? '#00000033' : 'transparent';
         });
       }
-
+  
       // 切换灰色字体开关
       toggleButton.addEventListener('click', () => {
         isGrayEnabled = !isGrayEnabled;
         updateGrayElements();
         toggleButton.textContent = isGrayEnabled ? 'ON' : 'OFF';
       });
-
+  
       // 加载数据
       async function loadData() {
         try {
@@ -257,19 +281,18 @@
           console.error('数据加载失败', error);
         }
       }
-
+  
       // 渲染主内容区域
       function renderContent(categoryType) {
         contentDiv.innerHTML = '';
-
         if (!categories[categoryType]) return;
-
+  
         categories[categoryType].forEach(subCategory => {
           const section = document.createElement('section');
           const heading = document.createElement('h2');
           heading.textContent = subCategory;
           section.appendChild(heading);
-
+  
           const list = document.createElement('ul');
           grammarData
             .filter(item => item.category === subCategory || item.level === subCategory)
@@ -282,16 +305,17 @@
                 event.preventDefault();
                 currentIndex = grammarData.findIndex(grammar => grammar.item === item.item);
                 handleLinkClick(item.item);
+                saveState(categoryType, currentIndex);
               });
               listItem.appendChild(link);
               list.appendChild(listItem);
             });
-
+  
           section.appendChild(list);
           contentDiv.appendChild(section);
         });
       }
-
+  
       // 渲染弹窗内容
       function renderDetailContent(name, content) {
         detailHeader.textContent = name;
@@ -305,43 +329,94 @@
             if (match && match[1]) handleLinkClick(match[1]);
           });
         });
-
+  
         detailPopup.style.display = 'block';
         detailPopup.scrollTo(0, 0);
       }
-
+  
+      // 保存状态到 localStorage
+      function saveState(categoryType, index) {
+        localStorage.setItem('selectedCategory', categoryType);
+        localStorage.setItem('currentIndex', index);
+        localStorage.setItem('scrollPosition', window.scrollY); // 保存滚动位置
+        localStorage.setItem('popupVisible', detailPopup.style.display === 'block');
+      }
+  
+      // 恢复状态
+      function restoreState() {
+        const selectedCategory = localStorage.getItem('selectedCategory') || '五十音順';
+        const savedIndex = localStorage.getItem('currentIndex');
+        const savedScrollPosition = localStorage.getItem('scrollPosition');
+        const popupVisible = localStorage.getItem('popupVisible') === 'true';
+  
+        renderContent(selectedCategory);
+  
+        if (savedIndex !== null) {
+          currentIndex = parseInt(savedIndex, 10);
+          handleLinkClick(grammarData[currentIndex].item);
+        }
+  
+        if (popupVisible) {
+          detailPopup.style.display = 'block';
+        }
+  
+        if (savedScrollPosition) {
+          window.scrollTo(0, parseInt(savedScrollPosition, 10));
+        }
+      }
+  
       // 处理链接点击
       function handleLinkClick(key) {
         const item = grammarData.find(grammar => grammar.item === key);
         if (item) {
           const detail = grammarDetails.find(detailItem => detailItem.item === key);
           renderDetailContent(item.name, detail ? detail.content : '<p>无法找到对应内容</p>');
+          highlightAndScrollTo(currentIndex); // 在点击时高亮并跳转
         } else {
           renderDetailContent('未知语法', '<p>无法找到对应语法</p>');
         }
         updateGrayElements();
       }
-
-      // 处理按钮点击
+  
+      // 修改上一项和下一项的点击事件
       function handlePrevClick(event) {
         event.stopPropagation();
         if (currentIndex > 0) {
           currentIndex--;
           handleLinkClick(grammarData[currentIndex].item);
+          saveState(localStorage.getItem('selectedCategory'), currentIndex);
+          highlightAndScrollTo(currentIndex); // 在切换时高亮并跳转
         }
       }
-
       function handleNextClick(event) {
         event.stopPropagation();
         if (currentIndex < grammarData.length - 1) {
           currentIndex++;
           handleLinkClick(grammarData[currentIndex].item);
+          saveState(localStorage.getItem('selectedCategory'), currentIndex);
+          highlightAndScrollTo(currentIndex); // 在切换时高亮并跳转
         }
       }
 
+      // 监听键盘事件
+      document.addEventListener('keydown', event => {
+        switch (event.key) {
+          case 'ArrowUp': // 上键
+            event.preventDefault(); // 阻止默认滚动
+            handlePrevClick(event);
+            break;
+          case 'ArrowDown': // 下键
+            event.preventDefault(); // 阻止默认滚动
+            handleNextClick(event);
+            break;
+          default:
+            break;
+        }
+      });
+
       prevButton.addEventListener('click', handlePrevClick);
       nextButton.addEventListener('click', handleNextClick);
-
+  
       // 点击空白区域关闭弹窗
       document.addEventListener('click', event => {
         if (!detailPopup.contains(event.target) &&
@@ -349,14 +424,15 @@
             !event.target.closest('#content') &&
             !event.target.closest('header')) {
           detailPopup.style.display = 'none';
+          saveState(localStorage.getItem('selectedCategory'), currentIndex);
         }
       });
-
+  
       // 阻止点击弹窗内容时关闭
       detailPopup.addEventListener('click', event => {
         event.stopPropagation();
       });
-
+  
       // 初始化
       loadData().then(() => {
         document.querySelectorAll('nav a').forEach(link => {
@@ -364,12 +440,13 @@
             event.preventDefault();
             const categoryType = link.getAttribute('data-type');
             renderContent(categoryType);
+            saveState(categoryType, currentIndex);
           });
         });
-        renderContent('五十音順'); // 默认显示
+        restoreState(); // 恢复状态
       });
     });
-
   </script>
+  
 </body>
 </html>
