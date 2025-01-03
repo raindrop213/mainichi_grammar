@@ -204,58 +204,54 @@
     <button id="next-button">次へ</button>
   </div>
   <script>
+    const dataFilePath = 'grammar_spider/grammar_data.json';
+    const detailFilePath = 'grammar_spider/grammar_detail.json';
+
+    const categories = {
+      '五十音順': ['あいうえお', 'かきくけこ', 'さしすせそ', 'たちつてと', 'なにぬねの', 'はひふへほ', 'まみむめも', 'や　ゆ　よ', 'らりるれろ', 'わ　を　ん'],
+      'レベル順': ['Ｎ０文法', 'Ｎ１文法', 'Ｎ２文法', 'Ｎ３文法', 'Ｎ４文法', 'Ｎ５文法'],
+      '敬語': ['尊敬語', '謙譲語Ⅰ・Ⅱ', '丁寧語']
+    };
+
+    let grammarData = [];
+    let grammarDetails = [];
+    let currentIndex = -1; // 跟踪当前语法项的索引
+    let isGrayEnabled = true; // 初始颜色为灰色
+
+    // 获取开关按钮
+    const toggleButton = document.getElementById('toggle-gray');
+
+    // 函数：更新页面上所有带 .gray 的元素颜色
+    function updateGrayElements() {
+      const grayElements = document.querySelectorAll('.gray'); // 获取所有 .gray 元素
+      grayElements.forEach(element => {
+        element.style.color = isGrayEnabled ? '#00000033' : 'transparent'; // 根据状态设置颜色
+      });
+    }
+
+    // 点击开关按钮切换状态
+    toggleButton.addEventListener('click', () => {
+      isGrayEnabled = !isGrayEnabled; // 切换状态
+      updateGrayElements(); // 更新颜色
+      toggleButton.textContent = isGrayEnabled ? 'ON' : 'OFF';
+    });
+
     document.addEventListener('DOMContentLoaded', () => {
-      // 配置文件路径
-      const dataFilePath = 'grammar_spider/grammar_data.json';
-      const detailFilePath = 'grammar_spider/grammar_detail.json';
-
-      // 定义分类和数据
-      const categories = {
-        '五十音順': ['あいうえお', 'かきくけこ', 'さしすせそ', 'たちつてと', 'なにぬねの', 'はひふへほ', 'まみむめも', 'や　ゆ　よ', 'らりるれろ', 'わ　を　ん'],
-        'レベル順': ['Ｎ０文法', 'Ｎ１文法', 'Ｎ２文法', 'Ｎ３文法', 'Ｎ４文法', 'Ｎ５文法'],
-        '敬語': ['尊敬語', '謙譲語Ⅰ・Ⅱ', '丁寧語']
-      };
-
-      let grammarData = [];
-      let grammarDetails = [];
-      let currentIndex = -1; // 当前语法项索引
-      let isGrayEnabled = true; // 初始灰色字体状态
-
-      // DOM 元素
-      const toggleButton = document.getElementById('toggle-gray');
+      const navLinks = document.querySelectorAll('nav a');
       const contentDiv = document.getElementById('content');
       const detailPopup = document.getElementById('detail-popup');
-      const detailHeader = document.getElementById('detail-header');
-      const detailContent = document.getElementById('detail-content');
       const prevButton = document.getElementById('prev-button');
       const nextButton = document.getElementById('next-button');
 
-      // 更新所有带 .gray 的元素颜色
-      function updateGrayElements() {
-        document.querySelectorAll('.gray').forEach(element => {
-          element.style.color = isGrayEnabled ? '#00000033' : 'transparent';
-        });
-      }
-
-      // 切换灰色字体开关
-      toggleButton.addEventListener('click', () => {
-        isGrayEnabled = !isGrayEnabled;
-        updateGrayElements();
-        toggleButton.textContent = isGrayEnabled ? 'ON' : 'OFF';
-      });
-
-      // 加载数据
-      async function loadData() {
-        try {
-          const [data, details] = await Promise.all([
-            fetch(dataFilePath).then(res => res.json()),
-            fetch(detailFilePath).then(res => res.json())
-          ]);
+      // 加载数据的通用函数
+      function loadData() {
+        return Promise.all([
+          fetch(dataFilePath).then(res => res.json()),
+          fetch(detailFilePath).then(res => res.json())
+        ]).then(([data, details]) => {
           grammarData = data;
           grammarDetails = details;
-        } catch (error) {
-          console.error('数据加载失败', error);
-        }
+        });
       }
 
       // 渲染主内容区域
@@ -278,11 +274,13 @@
               const link = document.createElement('a');
               link.href = '#';
               link.textContent = item.name;
+
               link.addEventListener('click', event => {
                 event.preventDefault();
                 currentIndex = grammarData.findIndex(grammar => grammar.item === item.item);
                 handleLinkClick(item.item);
               });
+
               listItem.appendChild(link);
               list.appendChild(listItem);
             });
@@ -294,15 +292,22 @@
 
       // 渲染弹窗内容
       function renderDetailContent(name, content) {
+        const detailHeader = document.getElementById('detail-header');
+        const detailContent = document.getElementById('detail-content');
+
         detailHeader.textContent = name;
         detailContent.innerHTML = content;
-        
-        detailContent.querySelectorAll('a').forEach(link => {
+
+        // 处理弹窗中的链接
+        const links = detailContent.querySelectorAll('a');
+        links.forEach(link => {
           link.addEventListener('click', event => {
             event.preventDefault();
             const href = link.getAttribute('href');
             const match = href.match(/\/grammar\/(.*)\//);
-            if (match && match[1]) handleLinkClick(match[1]);
+            if (match && match[1]) {
+              handleLinkClick(match[1]);
+            }
           });
         });
 
@@ -310,44 +315,71 @@
         detailPopup.scrollTo(0, 0);
       }
 
-      // 处理链接点击
+      // 通用的链接点击处理函数
       function handleLinkClick(key) {
         const item = grammarData.find(grammar => grammar.item === key);
         if (item) {
           const detail = grammarDetails.find(detailItem => detailItem.item === key);
-          renderDetailContent(item.name, detail ? detail.content : '<p>无法找到对应内容</p>');
+          if (detail) {
+            renderDetailContent(item.name, detail.content);
+          } else {
+            renderDetailContent(item.name, '<p>无法找到对应内容</p>');
+          }
         } else {
           renderDetailContent('未知语法', '<p>无法找到对应语法</p>');
         }
         updateGrayElements();
       }
 
-      // 处理按钮点击
+      // 按钮点击逻辑
       function handlePrevClick(event) {
-        event.stopPropagation();
+        event.stopPropagation(); // 阻止事件冒泡
         if (currentIndex > 0) {
           currentIndex--;
-          handleLinkClick(grammarData[currentIndex].item);
+          const prevItem = grammarData[currentIndex];
+          handleLinkClick(prevItem.item);
         }
       }
 
       function handleNextClick(event) {
-        event.stopPropagation();
+        event.stopPropagation(); // 阻止事件冒泡
         if (currentIndex < grammarData.length - 1) {
           currentIndex++;
-          handleLinkClick(grammarData[currentIndex].item);
+          const nextItem = grammarData[currentIndex];
+          handleLinkClick(nextItem.item);
         }
       }
 
+      // 绑定按钮事件
       prevButton.addEventListener('click', handlePrevClick);
       nextButton.addEventListener('click', handleNextClick);
 
-      // 点击空白区域关闭弹窗
+      // 初始化逻辑
+      loadData()
+        .then(() => {
+          navLinks.forEach(link => {
+            link.addEventListener('click', event => {
+              event.preventDefault();
+              const categoryType = link.getAttribute('data-type');
+              renderContent(categoryType);
+            });
+          });
+
+          renderContent('五十音順');
+        })
+        .catch(err => {
+          console.error('数据加载失败', err);
+        });
+
+      // 点击空白处关闭弹窗
       document.addEventListener('click', event => {
-        if (!detailPopup.contains(event.target) &&
-            ![prevButton, nextButton].includes(event.target) &&
-            !event.target.closest('#content') &&
-            !event.target.closest('header')) {
+        const isClickInsidePopup = detailPopup.contains(event.target); // 是否点击在弹窗内
+        const isClickInsideButtons = event.target === prevButton || event.target === nextButton; // 是否点击在按钮内
+        const isClickOnGrammarLink = event.target.tagName === 'A' && event.target.closest('#content'); // 是否点击在语法链接上
+        const isClickOnHeader = event.target.closest('header'); // 是否点击在顶栏内
+
+        // 如果点击的目标不是弹窗、按钮、语法链接或顶栏，则关闭弹窗
+        if (!isClickInsidePopup && !isClickInsideButtons && !isClickOnGrammarLink && !isClickOnHeader) {
           detailPopup.style.display = 'none';
         }
       });
@@ -356,20 +388,7 @@
       detailPopup.addEventListener('click', event => {
         event.stopPropagation();
       });
-
-      // 初始化
-      loadData().then(() => {
-        document.querySelectorAll('nav a').forEach(link => {
-          link.addEventListener('click', event => {
-            event.preventDefault();
-            const categoryType = link.getAttribute('data-type');
-            renderContent(categoryType);
-          });
-        });
-        renderContent('五十音順'); // 默认显示
-      });
     });
-
   </script>
 </body>
 </html>
