@@ -31,6 +31,9 @@ class GrammarSpider(scrapy.Spider):
         if content:
             # 清理 HTML 排版中的空白符，保留标签结构
             content = self.clean_html_whitespace(content)
+            
+            # 重写 <img> 标签，只保留 data-src 属性
+            content = self.rewrite_img_tags(content)
 
             # 将结果保存到列表中
             self.results.append({
@@ -49,6 +52,21 @@ class GrammarSpider(scrapy.Spider):
         # 去掉 HTML 文本开头和结尾的多余空白符
         html = re.sub(r'^\s+|\s+$', '', html)
         return html
+
+    def rewrite_img_tags(self, html):
+        """
+        Rewrite HTML's <img> tags to retain only the data-src attribute
+        and remove <noscript> tags entirely.
+        """
+        # Remove <noscript> tags and their content
+        html = re.sub(r'<noscript>.*?</noscript>', '', html, flags=re.DOTALL)
+        
+        # Rewrite <img> tags to keep only the data-src attribute
+        return re.sub(
+            r'<img [^>]*?data-src="([^"]+)"[^>]*?>',
+            r'<img src="\1">',
+            html
+        )
 
     def closed(self, reason):
         # 保存结果到 JSON 文件

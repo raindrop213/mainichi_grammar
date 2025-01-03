@@ -76,30 +76,76 @@
       top: 50px;
       right: 0;
       width: 50%; /* 占宽度的一半 */
-      height:auto;
+      height: auto;
       max-height: 80%;
       background: #fff;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       z-index: 1000;
-      padding: 20px;
       overflow-y: auto;
       border: 1px solid #ddd;
       display: none;
-      white-space: normal; /* 强制换行 */
-      word-wrap: break-word; /* 支持长单词换行 */
+      word-wrap: break-word;
       overflow-x: hidden; /* 隐藏横向滚动条 */
+    }
+    #detail-header {
+      position:fixed; /* 固定在弹窗顶部 */
+      background: #db8277; /* 背景颜色 */
+      width: 100%; /* 占满宽度 */
+      color: #fff; /* 字体颜色 */
+      font-weight: bold; /* 字体加粗 */
+      padding: 10px;
+      z-index: 10; /* 确保在最前方 */
+      border-bottom: 2px solid #ddd; /* 下边框 */
+    }
+    
+    #detail-content {
+      padding: 45px 20px 20px 20px;
+    }
+    img {
+      width: 100%;
     }
     .gray {
       color: #00000033;
       text-decoration: none;
+      margin-left: 55px;
     }
     .bold {
       font-weight: bold;
+      color: #db8277;
     }
     .post_content dt,.post_content h2,.post_content h3,.post_content h4 {
     font-weight: 700;
-    border-bottom: 2px solid #db8277; /* 设置2px黑色下边线 */
+    border-bottom: 2px solid #db8277;
   }
+  .post_content table {
+    border: none;
+    border-collapse: collapse;
+    border-spacing: 0;
+    line-height: 1.6;
+    max-width: 100%;
+    text-align: left;
+    width: 100%
+}
+.post_content td,.post_content th {
+    border: 1px solid #dcdcdc;
+    padding: .5em
+}
+
+.post_content th {
+    background-color: hsla(0,0%,59%,.05);
+    color: inherit;
+    font-weight: 700
+}
+
+.post_content thead td,.post_content thead th {
+    color: #fff
+}
+
+.post_content :where(table) caption {
+    font-size: .9em;
+    margin-bottom: .25em;
+    opacity: .8
+}
   </style>
 </head>
 <body>
@@ -116,6 +162,7 @@
     <div id="content"></div>
   </main>
   <div id="detail-popup">
+    <div id="detail-header"></div>
     <div id="detail-content"></div>
   </div>
   <script>
@@ -133,20 +180,26 @@
       const contentDiv = document.getElementById('content');
       const detailPopup = document.getElementById('detail-popup');
 
-      Promise.all([fetch(dataFilePath).then(res => res.json()), fetch(detailFilePath).then(res => res.json())])
-        .then(([data, details]) => {
-          navLinks.forEach(link => {
-            link.addEventListener('click', event => {
-              event.preventDefault();
-              const categoryType = link.getAttribute('data-type');
-              renderContent(data, details, categoryType);
-            });
-          });
+      // 定义通用的文件路径
+      const dataFilePath = 'grammar_spider/grammar_data.json';
+      const detailFilePath = 'grammar_spider/grammar_detail.json';
 
-          renderContent(data, details, '五十音順');
+      let grammarData = [];
+      let grammarDetails = [];
+
+      // 加载数据的通用函数
+      function loadData() {
+        return Promise.all([
+          fetch(dataFilePath).then(res => res.json()),
+          fetch(detailFilePath).then(res => res.json())
+        ]).then(([data, details]) => {
+          grammarData = data;
+          grammarDetails = details;
         });
+      }
 
-      function renderContent(data, details, categoryType) {
+      // 渲染主内容区域
+      function renderContent(categoryType) {
         contentDiv.innerHTML = '';
 
         if (!categories[categoryType]) return;
@@ -158,7 +211,7 @@
           section.appendChild(heading);
 
           const list = document.createElement('ul');
-          data
+          grammarData
             .filter(item => item.category === subCategory || item.level === subCategory)
             .forEach(item => {
               const listItem = document.createElement('li');
@@ -168,12 +221,7 @@
 
               link.addEventListener('click', event => {
                 event.preventDefault();
-                const detail = details.find(detailItem => detailItem.item === item.item);
-                if (detail) {
-                  renderDetailContent(detail.content);
-                } else {
-                  renderDetailContent('<p>无法找到内容</p>');
-                }
+                handleLinkClick(item.item);
               });
 
               listItem.appendChild(link);
@@ -185,14 +233,64 @@
         });
       }
 
-      function renderDetailContent(content) {
+      // 渲染弹窗内容
+      function renderDetailContent(name, content) {
+        const detailHeader = document.getElementById('detail-header');
         const detailContent = document.getElementById('detail-content');
+
+        detailHeader.textContent = name;
         detailContent.innerHTML = content;
+
+        // 处理弹窗中的链接
+        const links = detailContent.querySelectorAll('a');
+        links.forEach(link => {
+          link.addEventListener('click', event => {
+            event.preventDefault();
+            const href = link.getAttribute('href');
+            const match = href.match(/\/grammar\/(.*)\//);
+            if (match && match[1]) {
+              handleLinkClick(match[1]);
+            }
+          });
+        });
+
         detailPopup.style.display = 'block';
       }
 
+      // 通用的链接点击处理函数
+      function handleLinkClick(key) {
+        const item = grammarData.find(grammar => grammar.item === key);
+        if (item) {
+          const detail = grammarDetails.find(detailItem => detailItem.item === key);
+          if (detail) {
+            renderDetailContent(item.name, detail.content);
+          } else {
+            renderDetailContent(item.name, '<p>无法找到对应内容</p>');
+          }
+        } else {
+          renderDetailContent('未知语法', '<p>无法找到对应语法</p>');
+        }
+      }
+
+      // 初始化逻辑
+      loadData()
+        .then(() => {
+          navLinks.forEach(link => {
+            link.addEventListener('click', event => {
+              event.preventDefault();
+              const categoryType = link.getAttribute('data-type');
+              renderContent(categoryType);
+            });
+          });
+
+          renderContent('五十音順');
+        })
+        .catch(err => {
+          console.error('数据加载失败', err);
+        });
+
       // 点击空白处关闭弹窗
-      document.addEventListener('click', (event) => {
+      document.addEventListener('click', event => {
         const isClickInsidePopup = detailPopup.contains(event.target);
         const isLink = event.target.tagName === 'A';
         if (!isClickInsidePopup && !isLink) {
@@ -201,10 +299,10 @@
       });
 
       // 阻止点击弹窗内容时关闭
-      detailPopup.addEventListener('click', (event) => {
+      detailPopup.addEventListener('click', event => {
         event.stopPropagation();
       });
     });
-  </script>
+</script>
 </body>
 </html>
