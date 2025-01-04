@@ -209,6 +209,23 @@
     <button id="prev-button">前へ</button>
     <button id="next-button">次へ</button>
   </div>
+    <!-- grammar_data.json:
+    [
+      {
+          "name": "～あぐねる",
+          "category": "あいうえお",
+          "first": "あ",
+          "level": "Ｎ０",
+          "item": "n0-aguneru",
+          "link": "https://mainichi-nonbiri.com/grammar/n0-aguneru/",
+          "detail": ""
+      }, ...
+      grammar_detail.json:
+      [
+        {
+            "item": "n0-aguneru",
+            "content": "<div class=\"post_content\"><h3>備考</h3></div>"
+        },...-->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       // 配置文件路径
@@ -225,7 +242,12 @@
       let grammarDetails = [];
       let currentIndex = -1; // 当前语法项索引
       let isGrayEnabled = true;
-  
+      let categoryIndexes = {
+        '五十音順': -1, // 五十音順页面的编号
+        'レベル順': -1, // レベル順页面的编号
+        '敬語': -1     // 敬語页面的编号
+      };
+        
       // DOM 元素
       const toggleButton = document.getElementById('toggle-gray');
       const contentDiv = document.getElementById('content');
@@ -240,20 +262,23 @@
       const HIGHLIGHT_CLASS = 'selected'; // 定义高亮样式
 
       // 更新高亮样式并滚动到选中项
-      function highlightAndScrollTo(index) {
+      function highlightAndScrollTo(index, instant = false) {
         // 移除所有高亮
         document.querySelectorAll('li').forEach(item => {
-          item.classList.remove('selected'); // 使用静态样式
+          item.classList.remove(HIGHLIGHT_CLASS);
         });
 
         // 高亮当前选中项
         const selectedItem = contentDiv.querySelectorAll('li')[index];
         if (selectedItem) {
-          selectedItem.classList.add('selected'); // 添加高亮样式
-          selectedItem.scrollIntoView({ behavior: 'smooth', block: 'center' }); // 平滑滚动到中间
+          selectedItem.classList.add(HIGHLIGHT_CLASS);
+          // 根据传入的参数选择滚动行为
+          selectedItem.scrollIntoView({ 
+            behavior: instant ? 'auto' : 'smooth', // 切换页面用瞬时滚动，其他用平滑滚动
+            block: 'center' 
+          });
         }
       }
-  
       // 更新所有带 .gray 的元素颜色
       function updateGrayElements() {
         document.querySelectorAll('.gray').forEach(element => {
@@ -266,7 +291,19 @@
         isGrayEnabled = !isGrayEnabled;
         updateGrayElements();
         toggleButton.textContent = isGrayEnabled ? 'ON' : 'OFF';
+        
+        // 保存开关状态到 localStorage
+        localStorage.setItem('isGrayEnabled', isGrayEnabled);
       });
+      // 恢复开关状态
+      function restoreToggleState() {
+        const savedGrayState = localStorage.getItem('isGrayEnabled');
+        if (savedGrayState !== null) {
+          isGrayEnabled = JSON.parse(savedGrayState); // 将字符串转换为布尔值
+          updateGrayElements();
+          toggleButton.textContent = isGrayEnabled ? 'ON' : 'OFF';
+        }
+      }
   
       // 加载数据
       async function loadData() {
@@ -282,35 +319,39 @@
         }
       }
   
-      // 渲染主内容区域
+      let filteredGrammarData = []; // 当前页面的语法数据
+
       function renderContent(categoryType) {
         contentDiv.innerHTML = '';
+        filteredGrammarData = []; // 清空当前过滤的数据
+
         if (!categories[categoryType]) return;
-  
+
         categories[categoryType].forEach(subCategory => {
           const section = document.createElement('section');
           const heading = document.createElement('h2');
           heading.textContent = subCategory;
           section.appendChild(heading);
-  
+
           const list = document.createElement('ul');
           grammarData
             .filter(item => item.category === subCategory || item.level === subCategory)
             .forEach(item => {
+              filteredGrammarData.push(item); // 填充当前页面数据
               const listItem = document.createElement('li');
               const link = document.createElement('a');
               link.href = '#';
               link.textContent = item.name;
               link.addEventListener('click', event => {
                 event.preventDefault();
-                currentIndex = grammarData.findIndex(grammar => grammar.item === item.item);
+                currentIndex = filteredGrammarData.findIndex(grammar => grammar.item === item.item);
                 handleLinkClick(item.item);
                 saveState(categoryType, currentIndex);
               });
               listItem.appendChild(link);
               list.appendChild(listItem);
             });
-  
+
           section.appendChild(list);
           contentDiv.appendChild(section);
         });
@@ -320,50 +361,56 @@
       function renderDetailContent(name, content) {
         detailHeader.textContent = name;
         detailContent.innerHTML = content;
-        
+
         detailContent.querySelectorAll('a').forEach(link => {
           link.addEventListener('click', event => {
             event.preventDefault();
+            event.stopPropagation(); // 防止事件冒泡
             const href = link.getAttribute('href');
             const match = href.match(/\/grammar\/(.*)\//);
             if (match && match[1]) handleLinkClick(match[1]);
           });
         });
-  
+
         detailPopup.style.display = 'block';
         detailPopup.scrollTo(0, 0);
       }
   
       // 保存状态到 localStorage
       function saveState(categoryType, index) {
-        localStorage.setItem('selectedCategory', categoryType);
-        localStorage.setItem('currentIndex', index);
-        localStorage.setItem('scrollPosition', window.scrollY); // 保存滚动位置
-        localStorage.setItem('popupVisible', detailPopup.style.display === 'block');
-      }
+      categoryIndexes[categoryType] = index; // 保存当前页面的编号
+      localStorage.setItem('categoryIndexes', JSON.stringify(categoryIndexes));
+      localStorage.setItem('selectedCategory', categoryType); // 保存当前页面
+      localStorage.setItem('popupVisible', detailPopup.style.display === 'block'); // 弹窗显示状态
+    }
   
       // 恢复状态
       function restoreState() {
+        const savedIndexes = localStorage.getItem('categoryIndexes');
         const selectedCategory = localStorage.getItem('selectedCategory') || '五十音順';
-        const savedIndex = localStorage.getItem('currentIndex');
-        const savedScrollPosition = localStorage.getItem('scrollPosition');
         const popupVisible = localStorage.getItem('popupVisible') === 'true';
-  
-        renderContent(selectedCategory);
-  
-        if (savedIndex !== null) {
-          currentIndex = parseInt(savedIndex, 10);
-          handleLinkClick(grammarData[currentIndex].item);
+
+        if (savedIndexes) {
+          categoryIndexes = JSON.parse(savedIndexes);
         }
-  
+
+        renderContent(selectedCategory); // 渲染内容
+
+        // 恢复对应页面的编号
+        const savedIndex = categoryIndexes[selectedCategory];
+        if (savedIndex !== -1) {
+          currentIndex = savedIndex; // 设置当前编号
+          const currentItem = filteredGrammarData[currentIndex]; // 获取过滤后的数据项
+          handleLinkClick(currentItem.item); // 跳转到编号对应内容
+          highlightAndScrollTo(currentIndex, true); // **瞬时滚动**：将 `instant` 设置为 `true`
+        }
+
         if (popupVisible) {
-          detailPopup.style.display = 'block';
+          detailPopup.style.display = 'block'; // 恢复弹窗状态
         }
-  
-        if (savedScrollPosition) {
-          window.scrollTo(0, parseInt(savedScrollPosition, 10));
-        }
+        restoreToggleState(); // 恢复开关状态
       }
+
   
       // 处理链接点击
       function handleLinkClick(key) {
@@ -371,30 +418,35 @@
         if (item) {
           const detail = grammarDetails.find(detailItem => detailItem.item === key);
           renderDetailContent(item.name, detail ? detail.content : '<p>无法找到对应内容</p>');
-          highlightAndScrollTo(currentIndex); // 在点击时高亮并跳转
+          highlightAndScrollTo(currentIndex); // 默认平滑滚动
+          const selectedCategory = localStorage.getItem('selectedCategory');
+          categoryIndexes[selectedCategory] = currentIndex;
+          saveState(selectedCategory, currentIndex);
         } else {
           renderDetailContent('未知语法', '<p>无法找到对应语法</p>');
         }
         updateGrayElements();
       }
-  
-      // 修改上一项和下一项的点击事件
+        
+      // 上一项和下一项的点击事件
       function handlePrevClick(event) {
         event.stopPropagation();
         if (currentIndex > 0) {
           currentIndex--;
-          handleLinkClick(grammarData[currentIndex].item);
+          const currentItem = filteredGrammarData[currentIndex];
+          handleLinkClick(currentItem.item);
           saveState(localStorage.getItem('selectedCategory'), currentIndex);
-          highlightAndScrollTo(currentIndex); // 在切换时高亮并跳转
+          highlightAndScrollTo(currentIndex); // 默认平滑滚动
         }
       }
       function handleNextClick(event) {
         event.stopPropagation();
-        if (currentIndex < grammarData.length - 1) {
+        if (currentIndex < filteredGrammarData.length - 1) {
           currentIndex++;
-          handleLinkClick(grammarData[currentIndex].item);
+          const currentItem = filteredGrammarData[currentIndex];
+          handleLinkClick(currentItem.item);
           saveState(localStorage.getItem('selectedCategory'), currentIndex);
-          highlightAndScrollTo(currentIndex); // 在切换时高亮并跳转
+          highlightAndScrollTo(currentIndex); // 默认平滑滚动
         }
       }
 
@@ -419,18 +471,13 @@
   
       // 点击空白区域关闭弹窗
       document.addEventListener('click', event => {
-        if (!detailPopup.contains(event.target) &&
-            ![prevButton, nextButton].includes(event.target) &&
-            !event.target.closest('#content') &&
+        if (!event.target.closest('#detail-popup') &&
+            !event.target.closest('#navigation-buttons') &&
+            !(event.target.closest('#content') && event.target.tagName === 'A') &&
             !event.target.closest('header')) {
           detailPopup.style.display = 'none';
           saveState(localStorage.getItem('selectedCategory'), currentIndex);
         }
-      });
-  
-      // 阻止点击弹窗内容时关闭
-      detailPopup.addEventListener('click', event => {
-        event.stopPropagation();
       });
   
       // 初始化
@@ -439,14 +486,22 @@
           link.addEventListener('click', event => {
             event.preventDefault();
             const categoryType = link.getAttribute('data-type');
-            renderContent(categoryType);
-            saveState(categoryType, currentIndex);
+
+            saveState(localStorage.getItem('selectedCategory'), currentIndex); // 保存当前页面状态
+            renderContent(categoryType); // 渲染新页面
+            currentIndex = categoryIndexes[categoryType] !== undefined ? categoryIndexes[categoryType] : -1; // 恢复编号
+
+            // 如果有编号，跳转到对应内容，使用瞬时滚动
+            if (currentIndex !== -1) {
+              const currentItem = filteredGrammarData[currentIndex];
+              handleLinkClick(currentItem.item);
+              highlightAndScrollTo(currentIndex, true); // 瞬时滚动
+            }
           });
         });
         restoreState(); // 恢复状态
       });
     });
   </script>
-  
 </body>
 </html>
