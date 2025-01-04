@@ -178,7 +178,7 @@
     #toggle-gray{
       position: absolute;
       height: 30px;
-      width: 50px;
+      width: 35px;
       right: 20px;
       top: 10px;
     }
@@ -188,36 +188,18 @@
       border-radius: 1px;
       border-radius: 5px;
     }
-    #search-section {
-  padding: 20px;
-  background: #fff;
-  margin-top: 60px; /* 避免与固定的header重叠 */
-}
 
-#search-input {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
+    /* 搜索页面样式 */
+    #search-input {
+      display: block;
+      margin-top: 25px;
+      width: 100%;
+      height: 40px;
+      font-size: 16px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+    }
 
-#search-results {
-  list-style: none;
-  padding: 0;
-  margin-top: 20px;
-}
-
-#search-results li {
-  padding: 10px;
-  border: 1px solid #ddd;
-  margin-bottom: 10px;
-  cursor: pointer;
-}
-
-#search-results li:hover {
-  background-color: #f0f0f0;
-}
   </style>
 </head>
 <body>
@@ -234,14 +216,6 @@
   </header>
   <main>
     <div id="content"></div>
-    <div id="search-section" style="display:none;">
-      <div id="search-intro">
-        <h2>欢迎来到语法检索页面！</h2>
-        <p>请输入您想查找的语法名称。</p>
-      </div>
-      <input type="text" id="search-input" placeholder="请输入语法名称..." />
-      <ul id="search-results" style="display:none;"></ul>
-    </div>
   </main>
   <div id="detail-popup">
     <div id="detail-header"></div>
@@ -299,22 +273,61 @@
       const detailContent = document.getElementById('detail-content');
       const prevButton = document.getElementById('prev-button');
       const nextButton = document.getElementById('next-button');
-      
-      
-      // 添加一个选中的样式类
-      const HIGHLIGHT_CLASS = 'selected'; // 定义高亮样式
 
+
+      // 渲染搜索页面
+      function renderSearchPage() {
+        contentDiv.innerHTML = `
+          <input id="search-input" type="text" placeholder="語法名を検索する">
+          <div id="search-intro">简介...</div>
+          <ul id="search-results"></ul>
+        `;
+        const searchInput = document.getElementById('search-input');
+        const searchResults = document.getElementById('search-results');
+
+        searchInput.addEventListener('input', () => {
+          const query = searchInput.value.trim().toLowerCase();
+          if (query === '') {
+            searchResults.innerHTML = '';
+            return;
+          }
+
+          // 直接在 filter 中同时过滤五十音顺序和关键字
+          const filteredResults = grammarData.filter(item =>
+            categories['五十音順'].includes(item.category) && // 只保留五十音顺的内容
+            item.name.toLowerCase().includes(query)            // 检索关键字
+          );
+
+          if (filteredResults.length > 0) {
+            searchResults.innerHTML = filteredResults
+              .map(item => `<li><a href="#" data-item="${item.item}">${item.name}</a></li>`)
+              .join('');
+          } else {
+            searchResults.innerHTML = '<li>該当する語法がありません。</li>';
+          }
+
+          // 点击结果显示详情
+          searchResults.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', event => {
+              event.preventDefault();
+              const itemKey = link.getAttribute('data-item');
+              handleLinkClick(itemKey);
+            });
+          });
+        });
+      }
+      
       // 更新高亮样式并滚动到选中项
       function highlightAndScrollTo(index, instant = false) {
         // 移除所有高亮
         document.querySelectorAll('li').forEach(item => {
-          item.classList.remove(HIGHLIGHT_CLASS);
+          item.classList.remove('selected');
         });
 
         // 高亮当前选中项
         const selectedItem = contentDiv.querySelectorAll('li')[index];
         if (selectedItem) {
-          selectedItem.classList.add(HIGHLIGHT_CLASS);
+          selectedItem.classList.add('selected');
           // 根据传入的参数选择滚动行为
           selectedItem.scrollIntoView({ 
             behavior: instant ? 'auto' : 'smooth', // 切换页面用瞬时滚动，其他用平滑滚动
@@ -564,6 +577,11 @@
               const currentItem = filteredGrammarData[currentIndex];
               handleLinkClick(currentItem.item);
               highlightAndScrollTo(currentIndex, true); // 瞬时滚动
+            }
+
+            // 检索栏展开
+            if (categoryType === '検索') {
+              renderSearchPage();
             }
           });
         });
