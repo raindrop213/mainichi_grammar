@@ -53,9 +53,14 @@
       margin-bottom: 20px;
     }
     h2 {
+      position: sticky; /* 固定位置 */
+      top: 50px; /* 距离页面顶部，与 header 保持一致 */
       color: #0078d4;
-      border-bottom: 2px solid #0078d4;
       padding-bottom: 5px;
+      background: #f9f9f9; /* 设置背景色，避免与内容重叠 */
+      z-index: 2; /* 确保层级高于其他内容 */
+      margin: 0; /* 避免多余的间距 */
+      border-bottom: 2px solid #0078d4;
     }
     ul {
       list-style: none;
