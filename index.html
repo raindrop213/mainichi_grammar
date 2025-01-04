@@ -57,7 +57,7 @@
       top: 50px; /* 距离页面顶部，与 header 保持一致 */
       color: #0078d4;
       padding-bottom: 5px;
-      background: #f9f9f9; /* 设置背景色，避免与内容重叠 */
+      background: #ffffff; /* 设置背景色，避免与内容重叠 */
       z-index: 2; /* 确保层级高于其他内容 */
       margin: 0; /* 避免多余的间距 */
       border-bottom: 2px solid #0078d4;
@@ -172,7 +172,7 @@
       border: none;
       cursor: pointer;
       color: #fff;
-      background-color: #00000023;
+      background-color: #00000011;
     }
     #navigation-buttons button:hover {
       background: #0078d4;
@@ -196,8 +196,8 @@
   <header>
     <nav>
       <ul>
-        <li><a href="#" data-type="五十音順">五十音順</a></li>
         <li><a href="#" data-type="レベル順">レベル順</a></li>
+        <li><a href="#" data-type="五十音順">仮名順</a></li>
         <li><a href="#" data-type="敬語">敬語</a></li>
       </ul>
       <button id="toggle-gray">ON</button>
@@ -239,7 +239,7 @@
   
       const categories = {
         '五十音順': ['あいうえお', 'かきくけこ', 'さしすせそ', 'たちつてと', 'なにぬねの', 'はひふへほ', 'まみむめも', 'や　ゆ　よ', 'らりるれろ', 'わ　を　ん'],
-        'レベル順': ['Ｎ０文法', 'Ｎ１文法', 'Ｎ２文法', 'Ｎ３文法', 'Ｎ４文法', 'Ｎ５文法'],
+        'レベル順': ['Ｎ５文法', 'Ｎ４文法', 'Ｎ３文法', 'Ｎ２文法', 'Ｎ１文法', 'Ｎ０文法',],
         '敬語': ['尊敬語', '謙譲語Ⅰ・Ⅱ', '丁寧語']
       };
   
@@ -369,11 +369,19 @@
 
         detailContent.querySelectorAll('a').forEach(link => {
           link.addEventListener('click', event => {
-            event.preventDefault();
-            event.stopPropagation(); // 防止事件冒泡
             const href = link.getAttribute('href');
             const match = href.match(/\/grammar\/(.*)\//);
-            if (match && match[1]) handleLinkClick(match[1]);
+
+            if (match && match[1]) {
+              // 是 grammar 链接，阻止冒泡并处理点击逻辑
+              event.preventDefault();
+              event.stopPropagation(); // 阻止事件冒泡，防止触发全局关闭逻辑
+              handleLinkClick(match[1]);
+            } else {
+              // 不是 grammar 链接，允许默认跳转，并在新标签中打开
+              event.preventDefault(); // 阻止默认点击行为
+              window.open(href, '_blank'); // 在新标签中打开链接
+            }
           });
         });
 
@@ -392,7 +400,7 @@
       // 恢复状态
       function restoreState() {
         const savedIndexes = localStorage.getItem('categoryIndexes');
-        const selectedCategory = localStorage.getItem('selectedCategory') || '五十音順';
+        const selectedCategory = localStorage.getItem('selectedCategory') || 'レベル順';
         const popupVisible = localStorage.getItem('popupVisible') === 'true';
 
         if (savedIndexes) {
@@ -476,6 +484,12 @@
   
       // 点击空白区域关闭弹窗
       document.addEventListener('click', event => {
+        // 如果点击发生在弹窗内，直接返回，不关闭弹窗
+        if (event.target.closest('#detail-popup')) {
+          return;
+        }
+
+        // 点击其他地方关闭弹窗
         if (!event.target.closest('#detail-popup') &&
             !event.target.closest('#navigation-buttons') &&
             !(event.target.closest('#content') && event.target.tagName === 'A') &&
