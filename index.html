@@ -91,6 +91,11 @@
       display: none;
       word-wrap: break-word;
       overflow-x: hidden; /* 隐藏横向滚动条 */
+      transition: opacity 0.1s ease-in-out; /* 平滑过渡 */
+      opacity: 1;
+    }
+    .dragging #detail-popup {
+      opacity: 0.2; /* 拖动时弹窗变半透明 */
     }
     /* 添加媒体查询 */
     @media (max-width: 768px) { /* 当屏幕宽度小于等于768px时 */
@@ -296,7 +301,7 @@
         '敬語': -1     // 敬語页面的编号
       };
       let filteredGrammarData = []; // 当前页面的语法数据
-      let scrollTimeout;
+      let isDragging = false; // 是否正在拖动主页面
               
       // DOM 元素
       const toggleButton = document.getElementById('toggle-gray');
@@ -416,6 +421,30 @@
         }
       }
   
+      // 主页面触摸开始事件
+      document.body.addEventListener('touchstart', (event) => {
+        if (!event.target.closest('#detail-popup')) {
+          isDragging = false; // 初始化为未拖动
+          document.body.classList.remove('dragging'); // 确保没有残留样式
+        }
+      });
+
+      // 主页面触摸移动事件
+      document.body.addEventListener('touchmove', (event) => {
+        if (!event.target.closest('#detail-popup')) {
+          isDragging = true;
+          document.body.classList.add('dragging'); // 添加拖动样式
+        }
+      });
+
+      // 主页面触摸结束事件
+      document.body.addEventListener('touchend', () => {
+        if (isDragging) {
+          document.body.classList.remove('dragging'); // 移除拖动样式
+        }
+        isDragging = false; // 重置拖动状态
+      });
+
       // 加载数据
       async function loadData() {
         try {
