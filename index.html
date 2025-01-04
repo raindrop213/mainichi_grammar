@@ -188,6 +188,36 @@
       border-radius: 1px;
       border-radius: 5px;
     }
+    #search-section {
+  padding: 20px;
+  background: #fff;
+  margin-top: 60px; /* 避免与固定的header重叠 */
+}
+
+#search-input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+#search-results {
+  list-style: none;
+  padding: 0;
+  margin-top: 20px;
+}
+
+#search-results li {
+  padding: 10px;
+  border: 1px solid #ddd;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+#search-results li:hover {
+  background-color: #f0f0f0;
+}
   </style>
 </head>
 <body>
@@ -197,12 +227,21 @@
         <li><a href="#" data-type="レベル順">レベル順</a></li>
         <li><a href="#" data-type="五十音順">仮名順</a></li>
         <li><a href="#" data-type="敬語">敬語</a></li>
+        <li><a href="#" data-type="検索">検索</a></li>
       </ul>
       <button id="toggle-gray">译</button>
     </nav>
   </header>
   <main>
     <div id="content"></div>
+    <div id="search-section" style="display:none;">
+      <div id="search-intro">
+        <h2>欢迎来到语法检索页面！</h2>
+        <p>请输入您想查找的语法名称。</p>
+      </div>
+      <input type="text" id="search-input" placeholder="请输入语法名称..." />
+      <ul id="search-results" style="display:none;"></ul>
+    </div>
   </main>
   <div id="detail-popup">
     <div id="detail-header"></div>
@@ -250,7 +289,8 @@
         'レベル順': -1, // レベル順页面的编号
         '敬語': -1     // 敬語页面的编号
       };
-        
+      let filteredGrammarData = []; // 当前页面的语法数据
+              
       // DOM 元素
       const toggleButton = document.getElementById('toggle-gray');
       const contentDiv = document.getElementById('content');
@@ -321,8 +361,6 @@
           console.error('数据加载失败', error);
         }
       }
-  
-      let filteredGrammarData = []; // 当前页面的语法数据
 
       function renderContent(categoryType) {
         contentDiv.innerHTML = '';
