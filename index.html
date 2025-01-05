@@ -575,7 +575,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('#content li a').forEach(link => {
       const name = link.textContent;
       if (state.learnedGrammar.includes(name)) {
-        link.style.color = '#ccc'; // 设置为灰色
+        link.style.color = isLearnedColor; // 设置为灰色
       } else {
         link.style.color = ''; // 恢复默认颜色
       }
@@ -584,11 +584,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 渲染弹窗内容
   function renderDetailContent(name, content, level) {
-    // 设置弹窗标题
-    detailHeader.innerHTML = `<span>${name}</span>`;
-    
-    // 填充弹窗内容
-    detailContent.innerHTML = content;
+    detailHeader.innerHTML = `<span>${name}</span>`;// 设置弹窗标题
+    detailContent.innerHTML = content;// 填充弹窗内容
 
     // 更新 level tag
     const levelTag = document.getElementById('level-tag');
