@@ -15,14 +15,14 @@
     }
     header {
       text-align: center;
-      position: fixed; /* 固定位置 */
-      top: 0; /* 距离顶部 0 */
+      position: fixed;
+      top: 0;
       height: 50px;
-      width: 100%; /* 占满宽度 */
-      z-index: 1000; /* 保证在最前方 */
-      background: #0078d4; /* 确保背景颜色覆盖内容 */
+      width: 100%;
+      z-index: 1000;
+      background: #0078d4;
       color: #fff;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* 添加阴影 */
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
     nav ul {
       padding: 0;
@@ -53,13 +53,13 @@
       margin-bottom: 20px;
     }
     #content h2 {
-      position: sticky; /* 固定位置 */
+      position: sticky;
       color: #0078d4;
       top: 50px;
       padding: 6px 0px;
-      background: #ffffff; /* 设置背景色，避免与内容重叠 */
-      z-index: 2; /* 确保层级高于其他内容 */
-      margin: 0; /* 避免多余的间距 */
+      background: #ffffff;
+      z-index: 2;
+      margin: 0;
       border-bottom: 2px solid #0078d4;
     }
     ul {
@@ -80,7 +80,7 @@
       position: fixed;
       top: 50px;
       right: 0;
-      width: 50%; /* 默认宽度为50% */
+      width: 50%;
       height: auto;
       max-height: 90%;
       background: #fff;
@@ -90,28 +90,28 @@
       border: 1px solid #ddd;
       display: none;
       word-wrap: break-word;
-      overflow-x: hidden; /* 隐藏横向滚动条 */
-      transition: opacity 0.1s ease-in-out; /* 平滑过渡 */
+      overflow-x: hidden;
+      transition: opacity 0.1s ease-in-out;
       opacity: 1;
     }
     .dragging #detail-popup {
-      opacity: 0.2; /* 拖动时弹窗变半透明 */
+      opacity: 0.2;
     }
     /* 添加媒体查询 */
-    @media (max-width: 768px) { /* 当屏幕宽度小于等于768px时 */
+    @media (max-width: 768px) {
       #detail-popup {
-        width: 80%; /* 弹窗宽度变为80% */
+        width: 80%;
       }
     }
     #detail-header {
-      position:fixed; /* 固定在弹窗顶部 */
-      background: #db8277; /* 背景颜色 */
-      width: 100%; /* 占满宽度 */
-      color: #fff; /* 字体颜色 */
-      font-weight: bold; /* 字体加粗 */
+      position:fixed;
+      background: #db8277;
+      width: 100%;
+      color: #fff;
+      font-weight: bold;
       padding: 10px;
-      z-index: 10; /* 确保在最前方 */
-      border-bottom: 2px solid #ddd; /* 下边框 */
+      z-index: 10;
+      border-bottom: 2px solid #ddd;
     }
     
     #detail-content {
@@ -234,7 +234,7 @@
     }
 
     #close-popup:hover {
-      color: #db1010; /* 鼠标悬停时的颜色 */
+      color: #db1010;
       background: #ffffff5d;
     }
   </style>
@@ -296,9 +296,9 @@
       let currentIndex = -1; // 当前语法项索引
       let isGrayEnabled = true;
       let categoryIndexes = {
-        '五十音順': -1, // 五十音順页面的编号
-        'レベル順': -1, // レベル順页面的编号
-        '敬語': -1     // 敬語页面的编号
+        '五十音順': -1,
+        'レベル順': -1,
+        '敬語': -1  
       };
       let filteredGrammarData = []; // 当前页面的语法数据
       let isDragging = false; // 是否正在拖动主页面
@@ -374,7 +374,7 @@
       // 关闭按钮功能
       document.getElementById('close-popup').addEventListener('click', () => {
         detailPopup.style.display = 'none'; // 隐藏弹窗
-        saveState(localStorage.getItem('selectedCategory'), currentIndex); // 保存状态
+        saveState(localStorage.getItem('selectedCategory'), currentIndex);
       });
       
       // 更新高亮样式并滚动到选中项
@@ -433,16 +433,16 @@
       document.body.addEventListener('touchmove', (event) => {
         if (!event.target.closest('#detail-popup')) {
           isDragging = true;
-          document.body.classList.add('dragging'); // 添加拖动样式
+          document.body.classList.add('dragging');
         }
       });
 
       // 主页面触摸结束事件
       document.body.addEventListener('touchend', () => {
         if (isDragging) {
-          document.body.classList.remove('dragging'); // 移除拖动样式
+          document.body.classList.remove('dragging');
         }
-        isDragging = false; // 重置拖动状态
+        isDragging = false;
       });
 
       // 加载数据
@@ -526,11 +526,11 @@
   
       // 保存状态到 localStorage
       function saveState(categoryType, index) {
-      categoryIndexes[categoryType] = index; // 保存当前页面的编号
-      localStorage.setItem('categoryIndexes', JSON.stringify(categoryIndexes));
-      localStorage.setItem('selectedCategory', categoryType); // 保存当前页面
-      localStorage.setItem('popupVisible', detailPopup.style.display === 'block'); // 弹窗显示状态
-    }
+        categoryIndexes[categoryType] = index; // 保存当前页面的编号
+        localStorage.setItem('categoryIndexes', JSON.stringify(categoryIndexes));
+        localStorage.setItem('selectedCategory', categoryType); // 保存当前页面
+        localStorage.setItem('popupVisible', detailPopup.style.display === 'block'); // 弹窗显示状态
+      }
   
       // 恢复状态
       function restoreState() {
@@ -566,7 +566,7 @@
         if (item) {
           const detail = grammarDetails.find(detailItem => detailItem.item === key);
           renderDetailContent(item.name, detail ? detail.content : '<p>无法找到对应内容</p>');
-          highlightAndScrollTo(currentIndex); // 默认平滑滚动
+          highlightAndScrollTo(currentIndex);
           const selectedCategory = localStorage.getItem('selectedCategory');
           categoryIndexes[selectedCategory] = currentIndex;
           saveState(selectedCategory, currentIndex);
@@ -594,19 +594,19 @@
           const currentItem = filteredGrammarData[currentIndex];
           handleLinkClick(currentItem.item);
           saveState(localStorage.getItem('selectedCategory'), currentIndex);
-          highlightAndScrollTo(currentIndex); // 默认平滑滚动
+          highlightAndScrollTo(currentIndex);
         }
       }
 
       // 监听键盘事件
       document.addEventListener('keydown', event => {
         switch (event.key) {
-          case 'ArrowUp': // 上键
+          case 'ArrowUp':
             event.preventDefault(); // 阻止默认滚动
             handlePrevClick(event);
             break;
-          case 'ArrowDown': // 下键
-            event.preventDefault(); // 阻止默认滚动
+          case 'ArrowDown':
+            event.preventDefault();
             handleNextClick(event);
             break;
           default:
