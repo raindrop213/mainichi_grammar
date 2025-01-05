@@ -281,7 +281,9 @@
             "content": "<div class=\"post_content\"><h3>備考</h3></div>"
         },...-->
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
+
+  // 数据
   const dataFilePath = 'grammar_spider/grammar_data.json';
   const detailFilePath = 'grammar_spider/grammar_detail.json';
   const categories = {
@@ -290,44 +292,28 @@
     '敬語': ['尊敬語', '謙譲語Ⅰ・Ⅱ', '丁寧語']
   };
 
+  // 状态管理
   let grammarData = [];
   let grammarDetails = [];
   let isDragging = false;
-
-  // 统一状态对象
+  let isSearchPage = false;
   const state = {
     selectedCategory: 'レベル順', // 当前选中的分类
     popupVisible: false, // 弹窗是否可见
     isGrayEnabled: true, // 灰色字体开关
     filteredGrammarData: [], // 当前分类的语法数据
-    categoryIndexes: {
-      '五十音順': -1,
-      'レベル順': -1,
-      '敬語': -1
-    }
+    categoryIndexes: {'五十音順': -1,'レベル順': -1,'敬語': -1}
   };
 
   // DOM 元素
-  const toggleButton = document.getElementById('toggle-gray');
-  const contentDiv = document.getElementById('content');
-  const detailPopup = document.getElementById('detail-popup');
-  const detailHeader = document.getElementById('detail-header');
-  const detailContent = document.getElementById('detail-content');
-  const prevButton = document.getElementById('prev-button');
-  const nextButton = document.getElementById('next-button');
+  const toggleButton = document.getElementById('toggle-gray'); // 灰色字体切换按钮
+  const contentDiv = document.getElementById('content'); // 主内容容器
+  const detailPopup = document.getElementById('detail-popup'); // 弹窗容器
+  const detailHeader = document.getElementById('detail-header'); // 弹窗标题
+  const detailContent = document.getElementById('detail-content'); // 弹窗内容
+  const prevButton = document.getElementById('prev-button'); // 上一项按钮
+  const nextButton = document.getElementById('next-button'); // 下一项按钮
 
-  // 更新高亮样式并滚动到选中项
-  function highlightAndScrollTo(index, instant = false) {
-    document.querySelectorAll('li').forEach(item => item.classList.remove('selected'));
-    const selectedItem = contentDiv.querySelectorAll('li')[index];
-    if (selectedItem) {
-      selectedItem.classList.add('selected');
-      selectedItem.scrollIntoView({
-        behavior: instant ? 'auto' : 'smooth',
-        block: 'center'
-      });
-    }
-  }
 
   // 更新所有带 .gray 的元素颜色
   function updateGrayElements() {
@@ -343,6 +329,8 @@
     toggleButton.textContent = state.isGrayEnabled ? '译' : '原';
     saveState();
   });
+
+  /* =========================== 状态管理 =========================== */
 
   // 保存状态到 localStorage
   function saveState() {
@@ -370,6 +358,7 @@
     }
   }
 
+  /* =========================== 页面渲染 =========================== */
 
   // 渲染分类内容
   function renderContent(categoryType) {
@@ -410,16 +399,21 @@
     const savedIndex = state.categoryIndexes[categoryType];
     if (savedIndex !== -1 && savedIndex < state.filteredGrammarData.length) {
       highlightAndScrollTo(savedIndex, true);
+      // 这里确保弹窗内容被更新
+      const currentItem = state.filteredGrammarData[savedIndex];
+      if (currentItem) {
+        handleLinkClick(currentItem.item);
+      }
     }
   }
 
-
   // 渲染搜索页面
   function renderSearchPage() {
+    isSearchPage = true; // 设置为搜索页
     contentDiv.innerHTML = `
-    <div id="search-bar-container">
-      <input id="search-input" type="text" placeholder="語法名を検索する">
-    </div>
+      <div id="search-bar-container">
+        <input id="search-input" type="text" placeholder="語法名を検索する">
+      </div>
       <div id="search-intro">
         <p>本站内容全部源自「<a href="https://mainichi-nonbiri.com/" target="_blank">毎日のんびり日本語教師</a>」</p>
         <p>因苦于源站这部分糟糕的交互体验，遂架设了此站</p>
@@ -467,11 +461,27 @@
         link.addEventListener('click', event => {
           event.preventDefault();
           const itemKey = link.getAttribute('data-item');
-          handleLinkClick(itemKey);
+          handleSearchLinkClick(itemKey); // 调用独立的搜索详情处理函数
         });
       });
     });
   }
+  
+  // 搜索页独立的详情处理函数
+  function handleSearchLinkClick(key) {
+    const item = grammarData.find(grammar => grammar.item === key);
+    if (item) {
+      const detail = grammarDetails.find(detailItem => detailItem.item === key);
+      renderDetailContent(item.name, detail ? detail.content : '<p>无法找到对应内容</p>');
+      state.popupVisible = true; // 设置弹窗可见状态
+      saveState();
+    } else {
+      renderDetailContent('未知语法', '<p>无法找到对应语法</p>');
+    }
+    updateGrayElements();
+  }
+
+  /* =========================== 弹窗管理 =========================== */
 
   // 渲染弹窗内容
   function renderDetailContent(name, content) {
@@ -480,6 +490,29 @@
     detailPopup.style.display = 'block';
     state.popupVisible = true;
     saveState();
+  }
+
+  // 确保弹窗状态在页面加载时恢复
+  document.getElementById('close-popup').addEventListener('click', () => {
+    detailPopup.style.display = 'none';
+    state.popupVisible = false; // 更新状态
+    saveState();
+  });
+
+
+  /* =========================== 导航与交互 =========================== */
+  
+  // 更新高亮样式并滚动到选中项
+  function highlightAndScrollTo(index, instant = false) {
+    document.querySelectorAll('li').forEach(item => item.classList.remove('selected'));
+    const selectedItem = contentDiv.querySelectorAll('li')[index];
+    if (selectedItem) {
+      selectedItem.classList.add('selected');
+      selectedItem.scrollIntoView({
+        behavior: instant ? 'auto' : 'smooth',
+        block: 'center'
+      });
+    }
   }
 
   // 处理链接点击
@@ -503,38 +536,42 @@
     updateGrayElements();
   }
 
-
   // 上一项和下一项的点击事件
+  function updateNavigation(index) {
+    if (index >= 0 && index < state.filteredGrammarData.length) {
+      const currentItem = state.filteredGrammarData[index];
+      handleLinkClick(currentItem.item); // 显示弹窗内容
+      highlightAndScrollTo(index); // 高亮并滚动到对应位置
+      state.categoryIndexes[state.selectedCategory] = index; // 更新状态
+      saveState();
+    }
+  }
   prevButton.addEventListener('click', () => {
     const currentIndex = state.categoryIndexes[state.selectedCategory];
-    if (currentIndex > 0) {
-      state.categoryIndexes[state.selectedCategory]--;
-      const currentItem = state.filteredGrammarData[state.categoryIndexes[state.selectedCategory]];
-      handleLinkClick(currentItem.item);
-      highlightAndScrollTo(state.categoryIndexes[state.selectedCategory]);
-      saveState();
-    }
+    updateNavigation(currentIndex - 1);
   });
-
   nextButton.addEventListener('click', () => {
     const currentIndex = state.categoryIndexes[state.selectedCategory];
-    if (currentIndex < state.filteredGrammarData.length - 1) {
-      state.categoryIndexes[state.selectedCategory]++;
-      const currentItem = state.filteredGrammarData[state.categoryIndexes[state.selectedCategory]];
-      handleLinkClick(currentItem.item);
-      highlightAndScrollTo(state.categoryIndexes[state.selectedCategory]);
-      saveState();
+    updateNavigation(currentIndex + 1);
+  });
+  
+  // 添加键盘事件监听器
+  document.addEventListener('keydown', event => {
+    if (isSearchPage) return; // 如果是搜索页，则直接禁用上下键
+    const currentIndex = state.categoryIndexes[state.selectedCategory];
+    if (event.key === 'ArrowUp') { // 上键
+      event.preventDefault();
+      updateNavigation(currentIndex - 1);
+    } else if (event.key === 'ArrowDown') { // 下键
+      event.preventDefault();
+      updateNavigation(currentIndex + 1);
     }
   });
 
-  // 确保弹窗状态在页面加载时恢复
-  document.getElementById('close-popup').addEventListener('click', () => {
-    detailPopup.style.display = 'none';
-    state.popupVisible = false; // 更新状态
-    saveState();
-  });
 
-  // 初始化
+  /* =========================== 数据加载 =========================== */
+
+  // 加载数据
   async function loadData() {
     try {
       const [data, details] = await Promise.all([
@@ -545,6 +582,11 @@
       grammarDetails = details;
     } catch (error) {
       console.error('数据加载失败', error);
+      // 提供用户友好提示
+      contentDiv.innerHTML = '<p>无法加载语法数据，请稍后重试。</p>';
+      // 使用默认数据
+      grammarData = [];
+      grammarDetails = [];
     }
   }
 
@@ -556,6 +598,7 @@
         if (type === '検索') {
           renderSearchPage();
         } else {
+          isSearchPage = false; // 退出搜索页
           state.selectedCategory = type;
           saveState();
           renderContent(state.selectedCategory);
@@ -564,6 +607,37 @@
     });
     restoreState(); // 确保数据加载完成后恢复状态
   });
+
+  /* =========================== 手机端优化 =========================== */
+
+  // 主页面触摸 开始事件
+  document.body.addEventListener('touchstart', (event) => {
+    if (!event.target.closest('#detail-popup')) {
+      isDragging = false; // 初始化为未拖动
+      document.body.classList.remove('dragging'); // 确保没有残留样式
+    }
+  });
+  // 主页面触摸 移动事件
+  document.body.addEventListener('touchmove', (event) => {
+    if (!event.target.closest('#detail-popup')) {
+      isDragging = true;
+      document.body.classList.add('dragging');
+    }
+  });
+  // 主页面触摸 结束事件
+  document.body.addEventListener('touchend', () => {
+    if (isDragging) {
+      document.body.classList.remove('dragging');
+    }
+    isDragging = false;
+  });
+  
+  // 禁用双击放大的功能，移动端优化
+  document.addEventListener('dblclick', event => {
+    event.preventDefault(); // 阻止默认的双击放大行为
+  });
+
+
 });
 
 </script>
