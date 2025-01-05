@@ -299,7 +299,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let isSearchPage = false;
   const state = {
     selectedCategory: 'レベル順', // 当前选中的分类
-    popupVisible: false, // 弹窗是否可见
     isGrayEnabled: true, // 灰色字体开关
     filteredGrammarData: [], // 当前分类的语法数据
     categoryIndexes: {'五十音順': -1,'レベル順': -1,'敬語': -1}
@@ -353,15 +352,17 @@ document.addEventListener('DOMContentLoaded', () => {
       handleLinkClick(currentItem.item); // 显示弹窗内容
       highlightAndScrollTo(savedIndex, true); // 高亮并滚动到上次记录
     }
-    if (state.popupVisible) {
-      detailPopup.style.display = 'block';
-    }
   }
 
   /* =========================== 页面渲染 =========================== */
 
   // 渲染分类内容
   function renderContent(categoryType) {
+
+    isSearchPage = false; // 设置为非搜索页
+    const navigationButtons = document.getElementById('navigation-buttons');
+    if (navigationButtons) {navigationButtons.style.display = 'flex';}
+
     contentDiv.innerHTML = '';
     state.filteredGrammarData = [];
     if (!categories[categoryType]) return;
@@ -423,6 +424,13 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
       <ul id="search-results"></ul>
     `;
+
+    // 隐藏导航按钮
+    const navigationButtons = document.getElementById('navigation-buttons');
+    if (navigationButtons) {
+      navigationButtons.style.display = 'none';
+    }
+
     const searchInput = document.getElementById('search-input');
     const searchIntro = document.getElementById('search-intro');
     const searchResults = document.getElementById('search-results');
@@ -460,6 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
       searchResults.querySelectorAll('a').forEach(link => {
         link.addEventListener('click', event => {
           event.preventDefault();
+          detailPopup.style.display = 'block';
           const itemKey = link.getAttribute('data-item');
           handleSearchLinkClick(itemKey); // 调用独立的搜索详情处理函数
         });
@@ -473,7 +482,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (item) {
       const detail = grammarDetails.find(detailItem => detailItem.item === key);
       renderDetailContent(item.name, detail ? detail.content : '<p>无法找到对应内容</p>');
-      state.popupVisible = true; // 设置弹窗可见状态
       saveState();
     } else {
       renderDetailContent('未知语法', '<p>无法找到对应语法</p>');
@@ -485,20 +493,62 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 渲染弹窗内容
   function renderDetailContent(name, content) {
+    // 设置弹窗标题
     detailHeader.innerHTML = `<span>${name}</span>`;
+    
+    // 填充弹窗内容
     detailContent.innerHTML = content;
-    detailPopup.style.display = 'block';
-    state.popupVisible = true;
-    saveState();
+
+    // 处理弹窗内容中的链接
+    detailContent.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', event => {
+        const href = link.getAttribute('href');
+        
+        // 检查链接是否是语法链接（匹配特定模式 /grammar/{item}/）
+        const match = href.match(/\/grammar\/(.*)\//);
+        if (match && match[1]) {
+          // 是语法链接
+          event.preventDefault(); // 阻止默认行为
+          event.stopPropagation(); // 阻止事件冒泡
+
+          const itemKey = match[1];
+          const relatedItem = grammarData.find(grammar => grammar.item === itemKey);
+
+          if (relatedItem) {
+            const detail = grammarDetails.find(detailItem => detailItem.item === itemKey);
+            // 递归加载并填充对应语法内容
+            renderDetailContent(
+              relatedItem.name,
+              detail ? detail.content : '<p>无法找到对应内容</p>'
+            );
+          } else {
+            renderDetailContent('未知语法', '<p>无法找到对应语法</p>');
+          }
+        } else {
+          // 非语法链接，在新标签中打开
+          event.preventDefault(); // 阻止默认行为
+          window.open(href, '_blank'); // 新标签打开
+        }
+      });
+    });
+    
+    detailPopup.scrollTo(0, 0); // 滚动到顶部
   }
 
-  // 确保弹窗状态在页面加载时恢复
-  document.getElementById('close-popup').addEventListener('click', () => {
-    detailPopup.style.display = 'none';
-    state.popupVisible = false; // 更新状态
-    saveState();
+  // 点击页面空白处隐藏弹窗
+  document.addEventListener('click', (event) => {
+    const isClickInsidePopup = detailPopup.contains(event.target);
+    const isClickOnLink = event.target.tagName === 'A'; // 防止弹窗中链接被隐藏
+    const isClickOnNavigationButton = event.target.id === 'prev-button' || event.target.id === 'next-button'; // 检查是否点击了上下按钮
+    if (!isClickInsidePopup && !isClickOnLink && !isClickOnNavigationButton) {
+      detailPopup.style.display = 'none';
+    }
   });
 
+  // 关闭按钮点击事件
+  document.getElementById('close-popup').addEventListener('click', () => {
+    detailPopup.style.display = 'none';
+  });
 
   /* =========================== 导航与交互 =========================== */
   
@@ -526,8 +576,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const index = state.filteredGrammarData.findIndex(grammar => grammar.item === key);
       if (index !== -1) {
         state.categoryIndexes[state.selectedCategory] = index; // 更新索引
-        state.popupVisible = true; // 设置弹窗可见状态
         highlightAndScrollTo(index); // 调用高亮并滚动
+        detailPopup.style.display = 'block';
         saveState(); // 保存状态
       }
     } else {
@@ -631,7 +681,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     isDragging = false;
   });
-  
+
   // 禁用双击放大的功能，移动端优化
   document.addEventListener('dblclick', event => {
     event.preventDefault(); // 阻止默认的双击放大行为
