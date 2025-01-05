@@ -332,8 +332,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 数据
   const update = "2025.01.05"
-  const dataFilePath = 'version/20250105_grammar_data.json';
-  const detailFilePath = 'version/20250105_grammar_detail.json';
+  const dataFilePath = `version/20250105_grammar_data.json?version=20250105`; 
+  const detailFilePath = `version/20250105_grammar_detail.json?version=20250105`;
   const categories = {
     '五十音順': ['あいうえお', 'かきくけこ', 'さしすせそ', 'たちつてと', 'なにぬねの', 'はひふへほ', 'まみむめも', 'や　ゆ　よ', 'らりるれろ', 'わ　を　ん'],
     'レベル順': ['Ｎ０文法', 'Ｎ１文法', 'Ｎ２文法', 'Ｎ３文法', 'Ｎ４文法', 'Ｎ５文法'],
@@ -749,20 +749,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 加载数据
   async function loadData() {
-    try {
-      const [data, details] = await Promise.all([
-        fetch(dataFilePath).then(res => res.json()),
-        fetch(detailFilePath).then(res => res.json())
-      ]);
-      grammarData = data;
-      grammarDetails = details;
-    } catch (error) {
-      console.error('数据加载失败', error);
-      // 提供用户友好提示
-      contentDiv.innerHTML = '<p>无法加载语法数据，请稍后重试。</p>';
-      // 使用默认数据
-      grammarData = [];
-      grammarDetails = [];
+    const cachedData = localStorage.getItem('grammarData');
+    const cachedDetails = localStorage.getItem('grammarDetails');
+    if (cachedData && cachedDetails) {
+      grammarData = JSON.parse(cachedData);
+      grammarDetails = JSON.parse(cachedDetails);
+    } else {
+      try {
+        const [data, details] = await Promise.all([
+          fetch(dataFilePath).then(res => res.json()),
+          fetch(detailFilePath).then(res => res.json())
+        ]);
+        grammarData = data;
+        grammarDetails = details;
+
+        // 缓存数据到 localStorage
+        localStorage.setItem('grammarData', JSON.stringify(grammarData));
+        localStorage.setItem('grammarDetails', JSON.stringify(grammarDetails));
+      } catch (error) {
+        console.error('数据加载失败', error);
+      }
     }
   }
 
