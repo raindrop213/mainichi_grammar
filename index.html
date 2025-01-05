@@ -93,6 +93,7 @@
       overflow-x: hidden;
       transition: opacity 0.1s ease-in-out;
       opacity: 1;
+      overscroll-behavior: contain; /* 阻止滚动事件穿透到父容器 */
     }
     .dragging #detail-popup {
       opacity: 0.2;
@@ -245,7 +246,7 @@
       <ul>
         <li><a href="#" data-type="レベル順">レベル順</a></li>
         <li><a href="#" data-type="五十音順">仮名順</a></li>
-        <li><a href="#" data-type="敬語">敬語</a></li>
+        <li><a href="#" data-type="補充">補充</a></li>
         <li><a href="#" data-type="検索">検索</a></li>
       </ul>
       <button id="toggle-gray">译</button>
@@ -284,12 +285,13 @@
 document.addEventListener('DOMContentLoaded', () => {
 
   // 数据
-  const dataFilePath = 'grammar_spider/grammar_data.json';
-  const detailFilePath = 'grammar_spider/grammar_detail.json';
+  const update = "2025.01.05"
+  const dataFilePath = 'version/20250105_grammar_data.json';
+  const detailFilePath = 'version/20250105_grammar_detail.json';
   const categories = {
     '五十音順': ['あいうえお', 'かきくけこ', 'さしすせそ', 'たちつてと', 'なにぬねの', 'はひふへほ', 'まみむめも', 'や　ゆ　よ', 'らりるれろ', 'わ　を　ん'],
     'レベル順': ['Ｎ０文法', 'Ｎ１文法', 'Ｎ２文法', 'Ｎ３文法', 'Ｎ４文法', 'Ｎ５文法'],
-    '敬語': ['尊敬語', '謙譲語Ⅰ・Ⅱ', '丁寧語']
+    '補充': ['補充', '尊敬語', '謙譲語Ⅰ・Ⅱ', '丁寧語', '格助詞']
   };
 
   // 状态管理
@@ -301,7 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedCategory: 'レベル順', // 当前选中的分类
     isGrayEnabled: true, // 灰色字体开关
     filteredGrammarData: [], // 当前分类的语法数据
-    categoryIndexes: {'五十音順': -1,'レベル順': -1,'敬語': -1}
+    categoryIndexes: {'五十音順': -1,'レベル順': -1,'補充': -1}
   };
 
   // DOM 元素
@@ -421,6 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <p>另外源站还汇聚了大量优质日语学习资源，很有用</p>
         <p>！！！请不要范围式地分享本站，自个儿用就好了</p>
         <p>最后还在奋斗中的同学早日达成 Ｎ１★*‧٩(ˊᗜˋ*)و✧*‧</p>
+        <p style="color:#ccc;font-size:12px;">Update: ${update}</p>
       </div>
       <ul id="search-results"></ul>
     `;
@@ -537,10 +540,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 点击页面空白处隐藏弹窗
   document.addEventListener('click', (event) => {
+    const isClickOnHeader = event.target.closest('header');
     const isClickInsidePopup = detailPopup.contains(event.target);
-    const isClickOnLink = event.target.tagName === 'A'; // 防止弹窗中链接被隐藏
-    const isClickOnNavigationButton = event.target.id === 'prev-button' || event.target.id === 'next-button'; // 检查是否点击了上下按钮
-    if (!isClickInsidePopup && !isClickOnLink && !isClickOnNavigationButton) {
+    const isClickOnLink = event.target.tagName === 'A'; 
+    const isClickOnNavigationButtons = event.target.closest('#navigation-buttons');
+    if (!isClickInsidePopup && !isClickOnLink && !isClickOnHeader && !isClickOnNavigationButtons) {
       detailPopup.style.display = 'none';
     }
   });
@@ -686,8 +690,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('dblclick', event => {
     event.preventDefault(); // 阻止默认的双击放大行为
   });
-
-
 });
 
 </script>
