@@ -73,3 +73,9 @@ class GrammarSpider(scrapy.Spider):
         with open('grammar_detail.json', 'w', encoding='utf-8') as f:
             json.dump(self.results, f, ensure_ascii=False, indent=4)
         self.logger.info("Data saved to grammar_detail.json")
+
+
+'''
+cd grammar_spider
+scrapy crawl grammar
+'''

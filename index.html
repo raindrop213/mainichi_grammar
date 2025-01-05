@@ -300,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const categories = {
     '五十音順': ['あいうえお', 'かきくけこ', 'さしすせそ', 'たちつてと', 'なにぬねの', 'はひふへほ', 'まみむめも', 'や　ゆ　よ', 'らりるれろ', 'わ　を　ん'],
     'レベル順': ['Ｎ０文法', 'Ｎ１文法', 'Ｎ２文法', 'Ｎ３文法', 'Ｎ４文法', 'Ｎ５文法'],
-    '補充': ['補充', '尊敬語', '謙譲語Ⅰ・Ⅱ', '丁寧語', '格助詞']
+    '補充': ['補充', '格助詞', '尊敬語', '謙譲語Ⅰ・Ⅱ', '丁寧語']
   };
 
   // 状态管理
@@ -533,19 +533,20 @@ document.addEventListener('DOMContentLoaded', () => {
       link.addEventListener('click', event => {
         const href = link.getAttribute('href');
         
-        // 检查链接是否是语法链接（匹配特定模式 /grammar/{item}/）
-        const match = href.match(/\/grammar\/(.*)\//);
-        if (match && match[1]) {
+        // 检查链接是否是语法链接（匹配 /grammar/{item}/ 或 /jltct/{item}/）
+        const match = href.match(/\/(grammar|jltct)\/(.*)\//);
+        if (match && match[2]) {
           // 是语法链接
           event.preventDefault(); // 阻止默认行为
           event.stopPropagation(); // 阻止事件冒泡
 
-          const itemKey = match[1];
+          const type = match[1]; // 数据类型：grammar 或 jltct
+          const itemKey = match[2]; // 提取 item 值
           const relatedItem = grammarData.find(grammar => grammar.item === itemKey);
 
           if (relatedItem) {
             const detail = grammarDetails.find(detailItem => detailItem.item === itemKey);
-            // 递归加载并填充对应语法内容
+            // 加载并填充对应语法内容
             renderDetailContent(
               relatedItem.name,
               detail ? detail.content : '<p>无法找到对应内容</p>'
