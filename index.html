@@ -249,6 +249,40 @@
       color: #db1010;
       background: #ffffff5d;
     }
+    #level-tag {
+      position: fixed;
+      bottom: 7%;
+      right: 28px;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 20px;
+      font-weight: bold;
+      color: #ffffff;
+      border-radius: 10px;
+      border:transparent;
+      opacity: 0.7;
+      padding: 5px;
+      z-index: 100;
+      cursor: pointer;
+      transition: 0.1s ease-in-out;
+    }
+    #level-tag:hover {
+      color: rgb(0, 0, 0);
+      border: 4px solid #030303;
+      font-size: 17px;
+      transition: 0.1s ease-in-out;
+    }
+    /* 为不同 level 设置背景颜色 */
+    #level-tag.n5 { background-color: #ff4500; }
+    #level-tag.n4 { background-color: #ff8c00; }
+    #level-tag.n3 { background-color: #ffd700; }
+    #level-tag.n2 { background-color: #32cd32; }
+    #level-tag.n1 { background-color: #1e90ff; }
+    #level-tag.n0 { background-color: #9932cc; }
+    #level-tag.nn { background-color: #333d97; }
   </style>
 </head>
 <body>
@@ -268,6 +302,7 @@
   </main>
   <div id="detail-popup">
     <button id="close-popup">×</button>
+    <button id="level-tag"></button>
     <div id="detail-header"></div>
     <div id="detail-content"></div>
   </div>
@@ -314,7 +349,8 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedCategory: 'レベル順', // 当前选中的分类
     isGrayEnabled: true, // 灰色字体开关
     filteredGrammarData: [], // 当前分类的语法数据
-    categoryIndexes: {'五十音順': -1,'レベル順': -1,'補充': -1}
+    categoryIndexes: {'五十音順': -1,'レベル順': -1,'補充': -1},
+    learnedGrammar: [] // 存储学过的语法
   };
 
   // DOM 元素
@@ -357,7 +393,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function saveState() {
     localStorage.setItem('appState', JSON.stringify(state));
   }
-
+  
   // 恢复状态
   function restoreState() {
     const savedState = localStorage.getItem('appState');
@@ -368,6 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 根据恢复的状态设置按钮样式和文本
+    updateLearnedGrammarStyles();
     updateToggleButton();
     updateGrayElements();
     // 恢复导航栏高亮状态
@@ -412,6 +449,12 @@ document.addEventListener('DOMContentLoaded', () => {
           const link = document.createElement('a');
           link.href = '#';
           link.textContent = item.name;
+
+          // 根据学习状态更新样式
+          if (state.learnedGrammar.includes(item.name)) {
+            link.style.color = '#ccc'; // 已学过设置为灰色
+          }
+
           link.addEventListener('click', event => {
             event.preventDefault();
             state.categoryIndexes[state.selectedCategory] = state.filteredGrammarData.findIndex(grammar => grammar.item === item.item);
@@ -489,7 +532,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (filteredResults.length > 0) {
         searchResults.innerHTML = filteredResults
-          .map(item => `<li><a href="#" data-item="${item.item}">${item.name}</a></li>`)
+          .map(item => {
+            // 检查是否学过，并动态设置样式
+            const isLearned = state.learnedGrammar.includes(item.name);
+            const colorStyle = isLearned ? 'style="color: #ccc;"' : '';
+            return `<li><a href="#" data-item="${item.item}" data-level="${item.level}" ${colorStyle}>${item.name}</a></li>`;
+          })
           .join('');
       } else {
         searchResults.innerHTML = '<li>該当する語法がありません。</li>';
@@ -512,23 +560,63 @@ document.addEventListener('DOMContentLoaded', () => {
     const item = grammarData.find(grammar => grammar.item === key);
     if (item) {
       const detail = grammarDetails.find(detailItem => detailItem.item === key);
-      renderDetailContent(item.name, detail ? detail.content : '<p>无法找到对应内容</p>');
+      renderDetailContent(item.name, detail ? detail.content : '<p>无法找到对应内容</p>', item.level);
       saveState();
     } else {
-      renderDetailContent('未知语法', '<p>无法找到对应语法</p>');
+      renderDetailContent('未知语法', '<p>无法找到对应语法</p>', null);
     }
     updateGrayElements();
   }
 
   /* =========================== 弹窗管理 =========================== */
 
+  function updateLearnedGrammarStyles() {
+    document.querySelectorAll('#content li a').forEach(link => {
+      const name = link.textContent;
+      if (state.learnedGrammar.includes(name)) {
+        link.style.color = '#ccc'; // 设置为灰色
+      } else {
+        link.style.color = ''; // 恢复默认颜色
+      }
+    });
+  }
+
   // 渲染弹窗内容
-  function renderDetailContent(name, content) {
+  function renderDetailContent(name, content, level) {
     // 设置弹窗标题
     detailHeader.innerHTML = `<span>${name}</span>`;
     
     // 填充弹窗内容
     detailContent.innerHTML = content;
+
+    // 更新 level tag
+    const levelTag = document.getElementById('level-tag');
+    const halfWidthLevel = toHalfWidth(level); // 转换为半角
+    levelTag.textContent = level; // 显示原始全角字符
+    levelTag.className = ''; // 清除旧的 class
+    levelTag.classList.add(halfWidthLevel.toLowerCase()); // 添加对应 level 的 class
+
+    // 更新按钮状态
+    if (state.learnedGrammar.includes(name)) {
+      levelTag.style.backgroundColor = '#ccc'; // 已学过设置灰色
+    } else {
+      levelTag.style.backgroundColor = ''; // 未学过恢复默认颜色
+    }
+    // 添加点击事件
+    levelTag.onclick = () => {
+      if (state.learnedGrammar.includes(name)) {
+        state.learnedGrammar = state.learnedGrammar.filter(item => item !== name); // 移除学过的语法
+        levelTag.style.backgroundColor = ''; // 恢复默认颜色
+      } else {
+        state.learnedGrammar.push(name); // 添加到学过列表
+        levelTag.style.backgroundColor = '#ccc'; // 设置为灰色
+      }
+      updateLearnedGrammarStyles(); // 更新首页列表样式
+      saveState(); // 保存状态
+    };
+    
+    updateLearnedGrammarStyles(); // 更新首页列表样式
+    saveState(); // 保存状态
 
     // 处理弹窗内容中的链接
     detailContent.querySelectorAll('a').forEach(link => {
@@ -583,6 +671,13 @@ document.addEventListener('DOMContentLoaded', () => {
     detailPopup.style.display = 'none';
   });
 
+  // 转换全角字符为半角字符
+  function toHalfWidth(str) {
+    return str.replace(/[Ａ-Ｚ０-９]/g, char =>
+      String.fromCharCode(char.charCodeAt(0) - 0xFEE0)
+    );
+  }
+
   /* =========================== 导航与交互 =========================== */
   
   // 更新高亮样式并滚动到选中项
@@ -603,7 +698,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const item = grammarData.find(grammar => grammar.item === key);
     if (item) {
       const detail = grammarDetails.find(detailItem => detailItem.item === key);
-      renderDetailContent(item.name, detail ? detail.content : '<p>无法找到对应内容</p>');
+      renderDetailContent(item.name, detail ? detail.content : '<p>无法找到对应内容</p>', item.level);
 
       // 获取当前语法在 filteredGrammarData 中的索引
       const index = state.filteredGrammarData.findIndex(grammar => grammar.item === key);
