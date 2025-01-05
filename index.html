@@ -352,6 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
     categoryIndexes: {'五十音順': -1,'レベル順': -1,'補充': -1},
     learnedGrammar: [] // 存储学过的语法
   };
+  let isLearnedColor = '#ccc';
 
   // DOM 元素
   const toggleButton = document.getElementById('toggle-gray'); // 灰色字体切换按钮
@@ -452,7 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
           // 根据学习状态更新样式
           if (state.learnedGrammar.includes(item.name)) {
-            link.style.color = '#ccc'; // 已学过设置为灰色
+            link.style.color = isLearnedColor; // 已学过设置为灰色
           }
 
           link.addEventListener('click', event => {
@@ -535,13 +536,13 @@ document.addEventListener('DOMContentLoaded', () => {
           .map(item => {
             // 检查是否学过，并动态设置样式
             const isLearned = state.learnedGrammar.includes(item.name);
-            const colorStyle = isLearned ? 'style="color: #ccc;"' : '';
+            const colorStyle = isLearned ? `style="color: ${isLearnedColor};"` : '';
             return `<li><a href="#" data-item="${item.item}" data-level="${item.level}" ${colorStyle}>${item.name}</a></li>`;
           })
           .join('');
-      } else {
+    } else {
         searchResults.innerHTML = '<li>該当する語法がありません。</li>';
-      }
+    }
 
       // 点击结果显示详情
       searchResults.querySelectorAll('a').forEach(link => {
@@ -598,7 +599,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 更新按钮状态
     if (state.learnedGrammar.includes(name)) {
-      levelTag.style.backgroundColor = '#ccc'; // 已学过设置灰色
+      levelTag.style.backgroundColor = isLearnedColor; // 已学过设置灰色
     } else {
       levelTag.style.backgroundColor = ''; // 未学过恢复默认颜色
     }
@@ -609,14 +610,14 @@ document.addEventListener('DOMContentLoaded', () => {
         levelTag.style.backgroundColor = ''; // 恢复默认颜色
       } else {
         state.learnedGrammar.push(name); // 添加到学过列表
-        levelTag.style.backgroundColor = '#ccc'; // 设置为灰色
+        levelTag.style.backgroundColor = isLearnedColor; // 设置为灰色
       }
       updateLearnedGrammarStyles(); // 更新首页列表样式
-      saveState(); // 保存状态
+      saveState();
     };
     
-    updateLearnedGrammarStyles(); // 更新首页列表样式
-    saveState(); // 保存状态
+    updateLearnedGrammarStyles();
+    saveState();
 
     // 处理弹窗内容中的链接
     detailContent.querySelectorAll('a').forEach(link => {
