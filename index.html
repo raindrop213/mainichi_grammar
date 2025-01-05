@@ -41,6 +41,10 @@
     nav a:hover {
       text-decoration: underline;
     }
+    nav a.active {
+      color: yellow; /* 设置为黄色，表示被选中 */
+      text-decoration: underline; /* 可以添加下划线或其他样式 */
+    }
     main {
       max-width: 800px;
       margin: 20px auto;
@@ -131,7 +135,11 @@
     }
     /* 弹窗中表格样式 */
     .post_content dt,.post_content h2,.post_content h3,.post_content h4 {
-      font-weight: 700;
+      position: sticky;
+      top: 46px;
+      font-weight: 600;
+      color: #db8277;
+      background: #ffffff;
       border-bottom: 2px solid #db8277;
     }
     .post_content table {
@@ -189,9 +197,10 @@
       top: 10px;
       border-radius: 10px;
       border:transparent;
+      cursor: pointer;
     }
-    #toggle-gray:hover {
-      background: #74aad3;
+    #toggle-gray.original {
+      background: #030303;
       color: #ffffff;
     }
     /* 高亮选中项的样式 */
@@ -325,11 +334,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 切换灰色字体开关
   toggleButton.addEventListener('click', () => {
-    state.isGrayEnabled = !state.isGrayEnabled;
-    updateGrayElements();
-    toggleButton.textContent = state.isGrayEnabled ? '译' : '原';
+    state.isGrayEnabled = !state.isGrayEnabled; // 切换状态
+    updateToggleButton(); // 更新按钮状态
+    updateGrayElements(); // 更新灰色字体显示
     saveState();
   });
+  function updateToggleButton() {
+    if (state.isGrayEnabled) {
+      toggleButton.textContent = '译';
+      toggleButton.classList.remove('original');
+    } else {
+      toggleButton.textContent = '原';
+      toggleButton.classList.add('original');
+    }
+  }
 
   /* =========================== 状态管理 =========================== */
 
@@ -346,6 +364,14 @@ document.addEventListener('DOMContentLoaded', () => {
       updateGrayElements();
       toggleButton.textContent = state.isGrayEnabled ? '译' : '原';
     }
+
+    // 根据恢复的状态设置按钮样式和文本
+    updateToggleButton();
+    updateGrayElements();
+    // 恢复导航栏高亮状态
+    const activeNavItem = document.querySelector(`nav a[data-type="${state.selectedCategory}"]`);
+    if (activeNavItem) {activeNavItem.classList.add('active');}
+
     renderContent(state.selectedCategory);
 
     const savedIndex = state.categoryIndexes[state.selectedCategory];
@@ -648,6 +674,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('nav a').forEach(link => {
       link.addEventListener('click', event => {
         event.preventDefault();
+
+        document.querySelectorAll('nav a').forEach(navLink => {
+          navLink.classList.remove('active');
+        });// 移除所有导航项的 `active` 类
+        link.classList.add('active'); // 为当前点击的导航项添加 `active` 类
+
+        // 切换页面
         const type = link.getAttribute('data-type');
         if (type === '検索') {
           renderSearchPage();
