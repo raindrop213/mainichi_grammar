@@ -712,14 +712,14 @@ document.addEventListener('DOMContentLoaded', () => {
     levelTag.className = ''; // 清除旧的 class
     levelTag.classList.add(halfWidthLevel.toLowerCase()); // 添加对应 level 的 class
 
-    // // 学习checkBox动画
-    // const learnedAnimation = lottie.loadAnimation({
-    //   container: document.getElementById('learned-animation'),
-    //   renderer: 'svg',
-    //   loop: false,
-    //   autoplay: false,
-    //   path: 'docs/checkBox.json',
-    // });
+    // 学习checkBox动画
+    const learnedAnimation = lottie.loadAnimation({
+      container: document.getElementById('learned-animation'),
+      renderer: 'svg',
+      loop: false,
+      autoplay: false,
+      path: 'docs/checkBox.json',
+    });
 
     // 更新按钮状态
     const button = document.getElementById('learned-button');

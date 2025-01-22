@@ -13,7 +13,7 @@
       --secondary-color: rgb(242,200,124);
       --text-header: #ffffff;
       --text-color: #444;
-      --text-learned: #aaaaaa;
+      --text-learned: rgb(207, 138, 110);
       --highlight-text: yellow;
       --background-bg-1: rgb(245,232,177);
       --background-bg-2: rgb(255, 255, 255);
@@ -28,7 +28,7 @@
       --secondary-color: rgb(155, 187, 121);
       --text-header: #ffffff;
       --text-color: #d4d4d4;
-      --text-learned: #7e7e7e;
+      --text-learned: #cecece;
       --highlight-text: yellow;
       --background-bg-1: rgb(20,20,20);
       --background-bg-2: rgb(20,20,20);
@@ -126,10 +126,8 @@
       border: 1px solid var(--background-bg-2);
       display: none;
       word-wrap: break-word;
-      overflow-x: hidden;
       transition: opacity 0.1s ease-in-out;
       opacity: 1;
-      overscroll-behavior: contain; /* 阻止滚动事件穿透到父容器 */
     }
     .dragging #detail-popup {
       opacity: 0.1;
@@ -156,6 +154,7 @@
       background: var(--background-bg-2);
       max-height: calc(90vh - 44px); /* 计算剩余高度，减去 detail-header 的高度 */
       overflow-y: auto; /* 在 detail-content 中启用滚动条 */
+      overscroll-behavior: contain; /* 阻止滚动事件穿透到父容器 */
     }
     img {
       width: 100%;
@@ -306,39 +305,47 @@
       background: #ffffff5d;
     }
     #level-tag {
-      position: fixed;
-      bottom: 7%;
-      right: 28px;
-      width: 60px;
-      height: 60px;
+      position:absolute;
+      top: 44px;
+      right: 21px;
       display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 20px;
+      font-size: 15px;
+      font-family:system-ui, 'Segoe UI', sans-serif;
       font-weight: bold;
-      color: #ffffff;
-      border-radius: 10px;
       border:transparent;
-      opacity: 0.7;
+      background: transparent;
       padding: 5px;
       z-index: 100;
+      transition: 0.2s ease-in-out;
+    }
+    #level-tag.n5 { color: #ff4500; }
+    #level-tag.n4 { color: #ff8c00; }
+    #level-tag.n3 { color: #ffd700; }
+    #level-tag.n2 { color: #32cd32; }
+    #level-tag.n1 { color: #1e90ff; }
+    #level-tag.n0 { color: #9932cc; }
+    #level-tag.nn { color: #333d97; }
+
+    #learned-button {
+      position: absolute;
+      height: 60px;
+      width: 60px;
+      right: 20px;
+      bottom: 10px;
+      background-color: var(--primary-color);
+      color: var(--text-header);
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      padding: 10px 20px;
       cursor: pointer;
-      transition: 0.1s ease-in-out;
+      transition: background-color 0.3s ease;
     }
-    #level-tag:hover {
-      color: var(--text-color);
-      border: 4px solid var(--text-color);
-      font-size: 17px;
-      transition: 0.1s ease-in-out;
+
+    #learned-button.completed {
+      background-color: var(--text-learned);
+      color: var(--background-bg-1);
     }
-    /* 为不同 level 设置背景颜色 */
-    #level-tag.n5 { background-color: #ff4500; }
-    #level-tag.n4 { background-color: #ff8c00; }
-    #level-tag.n3 { background-color: #ffd700; }
-    #level-tag.n2 { background-color: #32cd32; }
-    #level-tag.n1 { background-color: #1e90ff; }
-    #level-tag.n0 { background-color: #9932cc; }
-    #level-tag.nn { background-color: #333d97; }
   </style>
 </head>
 <body>
@@ -359,9 +366,10 @@
   </main>
   <div id="detail-popup">
     <button id="close-popup">×</button>
-    <button id="level-tag"></button>
+    <div id="level-tag"></div>
     <div id="detail-header"></div>
     <div id="detail-content"></div>
+    <button id="learned-button">✔️ 完成</button>
   </div>
   <div id="navigation-buttons">
     <button id="prev-button"></button>
@@ -678,53 +686,62 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 渲染弹窗内容
   function renderDetailContent(name, content, level) {
-    detailHeader.innerHTML = `<span>${name}</span>`;// 设置弹窗标题
-    detailContent.innerHTML = content;// 填充弹窗内容
+    detailHeader.innerHTML = `${name}`;// 设置弹窗标题
+    detailContent.innerHTML = `${content}`;// 填充弹窗内容
 
-    // 更新 level tag
+    // 更新 level-tag
     const levelTag = document.getElementById('level-tag');
     const halfWidthLevel = toHalfWidth(level); // 转换为半角
     levelTag.textContent = level; // 显示原始全角字符
     levelTag.className = ''; // 清除旧的 class
     levelTag.classList.add(halfWidthLevel.toLowerCase()); // 添加对应 level 的 class
 
-    // 更新按钮状态
+    // 学习checkBox动画
+    const learnedAnimation = lottie.loadAnimation({
+      container: document.getElementById('learned-animation'),
+      renderer: 'svg',
+      loop: false,
+      autoplay: false,
+      path: 'docs/checkBox.json',
+    });
+
+    // 更新学习按钮状态
+    const learnedButton = document.getElementById('learned-button');
     if (state.learnedGrammar.includes(name)) {
-      levelTag.classList.add('learned');
+      learnedButton.classList.add('completed');
+      learnedButton.textContent = '✔️ 完成';
     } else {
-      levelTag.classList.remove('learned');
+      learnedButton.classList.remove('completed');
+      learnedButton.textContent = '❌ 待学习';
     }
     // 添加点击事件
-    levelTag.onclick = () => {
+    learnedButton.onclick = () => {
       if (state.learnedGrammar.includes(name)) {
         state.learnedGrammar = state.learnedGrammar.filter(item => item !== name); // 移除学过状态
-        levelTag.classList.remove('learned');
+        learnedButton.classList.remove('completed');
+        learnedButton.textContent = '❌ 待学习';
+        console.log("移除学过状态")
       } else {
         state.learnedGrammar.push(name); // 添加到学过列表
-        levelTag.classList.add('learned');
+        learnedButton.classList.add('completed');
+        learnedButton.textContent = '✔️ 完成';
+        console.log("添加到学过列表")
       }
       updateLearnedGrammarStyles(); // 更新首页列表样式
       saveState();
     };
     
-    updateLearnedGrammarStyles();
-    saveState();
-
     // 处理弹窗内容中的链接
     detailContent.querySelectorAll('a').forEach(link => {
       link.addEventListener('click', event => {
         const href = link.getAttribute('href');
-
-        // 检查链接是否是语法链接（匹配 /grammar/{item}/ 或 /jltct/{item}/）
         const match = href.match(/\/(grammar|jltct)\/(.*)\//);
         if (match && match[2]) {
           // 是语法链接
           event.preventDefault(); // 阻止默认行为
           event.stopPropagation(); // 阻止事件冒泡
-
           const itemKey = match[2]; // 提取 item 值
           const relatedItem = grammarData.find(grammar => grammar.item === itemKey);
-
           if (relatedItem) {
             const detail = grammarDetails.find(detailItem => detailItem.item === itemKey);
             renderDetailContent(
@@ -733,11 +750,9 @@ document.addEventListener('DOMContentLoaded', () => {
               relatedItem.level
             );
           } else {
-            // 如果不是语法链接，在新标签中打开
-            window.open(href, '_blank');
+            window.open(href, '_blank'); // 如果不是语法链接，在新标签中打开
           }
         } else {
-          // 如果不是语法链接，在新标签中打开
           window.open(href, '_blank');
         }
       });
