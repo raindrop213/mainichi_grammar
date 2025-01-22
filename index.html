@@ -7,13 +7,42 @@
   <meta name="description" content="簡潔な日本語の文法学習ツール">
   <title>日本語の文法</title>
   <style>
+    :root {
+      --primary-color: rgb(130, 155, 68);
+      --primary-color-2: rgba(130, 155, 68, 0.2);
+      --secondary-color: rgb(242,200,124);
+      --text-header: #ffffff;
+      --text-color: #444;
+      --text-learned: #aaaaaa;
+      --highlight-text: yellow;
+      --background-bg-1: rgb(245,232,177);
+      --background-bg-2: rgb(255, 255, 255);
+      --background-bg-f: rgb(0, 0, 0);
+      --gray-text: #00000033;
+      --box-shadow-1: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    .dark-mode {
+      --primary-color: rgb(84, 133, 92);
+      --primary-color-2: rgba(84, 133, 92, 0.2);
+      --secondary-color: rgb(155, 187, 121);
+      --text-header: #ffffff;
+      --text-color: #d4d4d4;
+      --text-learned: #7e7e7e;
+      --highlight-text: yellow;
+      --background-bg-1: rgb(20,20,20);
+      --background-bg-2: rgb(20,20,20);
+      --background-bg-f: rgb(255, 255, 255);
+      --gray-text: #ffffff20;
+      --box-shadow-1: 0 2px 10px rgba(255, 255, 255, 0.3);
+    }
+
     body {
       font-family: Arial, sans-serif;
       line-height:1.5;
       margin: 0;
       padding: 0;
-      background: #f9f9f9;
-      color: #333;
+      background: var(--background-bg-1);
+      color: var(--text-color);
     }
     header {
       text-align: center;
@@ -22,9 +51,8 @@
       height: 50px;
       width: 100%;
       z-index: 1000;
-      background: #0078d4;
-      color: #fff;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      background: var(--primary-color);
+      box-shadow: var(--box-shadow-1);
     }
     nav ul {
       padding: 0;
@@ -36,7 +64,7 @@
       margin: 0 15px;
     }
     nav a {
-      color: #fff;
+      color: var(--text-header);
       text-decoration: none;
       font-weight: bold;
     }
@@ -44,29 +72,29 @@
       text-decoration: underline;
     }
     nav a.active {
-      color: yellow; /* 设置为黄色，表示被选中 */
-      text-decoration: underline; /* 可以添加下划线或其他样式 */
+      color: var(--highlight-text);
+      text-decoration: underline;
     }
     main {
       max-width: 800px;
-      margin: 20px auto;
-      padding: 20px 20px;
-      background: #fff;
+      margin: auto;
+      padding: 50px 20px 20px 20px;
       border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--box-shadow-1);
+      background: var(--background-bg-2);
     }
     section {
       margin-bottom: 20px;
     }
     #content h2 {
       position: sticky;
-      color: #0078d4;
+      color: var(--primary-color);
+      background: var(--background-bg-2);
       top: 50px;
       padding: 6px 0px;
-      background: #ffffff;
       z-index: 2;
       margin: 0;
-      border-bottom: 2px solid #0078d4;
+      border-bottom: 2px solid var(--primary-color);
     }
     ul {
       list-style: none;
@@ -76,7 +104,7 @@
       margin-bottom: 10px;
     }
     a {
-      color: #0078d4;
+      color: var(--primary-color);
       text-decoration: none;
     }
     a:hover {
@@ -89,11 +117,11 @@
       width: 50%;
       height: auto;
       max-height: 90%;
-      background: #fff;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      background: var(--background-bg-2);
+      box-shadow: var(--box-shadow-1);
       z-index: 1000;
       overflow-y: auto;
-      border: 1px solid #ddd;
+      border: 1px solid var(--background-bg-2);
       display: none;
       word-wrap: break-word;
       overflow-x: hidden;
@@ -102,47 +130,54 @@
       overscroll-behavior: contain; /* 阻止滚动事件穿透到父容器 */
     }
     .dragging #detail-popup {
-      opacity: 0.2;
+      opacity: 0.1;
     }
     /* 添加媒体查询 */
     @media (max-width: 768px) {
       #detail-popup {
-        width: 80%;
+        width: 84%;
       }
     }
     #detail-header {
       position:fixed;
-      background: #db8277;
+      background: var(--secondary-color);
       width: 100%;
-      color: #fff;
+      color: var(--text-header);
       font-weight: bold;
       padding: 10px;
       z-index: 10;
-      border-bottom: 2px solid #ddd;
     }
-    
     #detail-content {
       padding: 45px 20px 45px 20px;
+      color: var(--text-color);
+      background: var(--background-bg-2);
     }
     img {
       width: 100%;
     }
     .gray {
-      color: #00000033;
-      margin-left: 55px;
+      color: var(--gray-text);
+      transition: color 0.2s ease;
+    }
+    .gray::before{
+      content: "　　　　";
+    }
+    .gray.active {
+      color: transparent;
     }
     .bold {
       font-weight: bold;
-      color: #db8277;
+      color: var(--secondary-color);
     }
     /* 弹窗中表格样式 */
     .post_content dt,.post_content h2,.post_content h3,.post_content h4 {
       position: sticky;
-      top: 46px;
+      top: 44px;
+      padding: 3px 0px;
       font-weight: 600;
-      color: #db8277;
-      background: #ffffff;
-      border-bottom: 2px solid #db8277;
+      color: var(--secondary-color);
+      background: var(--background-bg-2);
+      border-bottom: 2px solid var(--secondary-color);
     }
     .post_content table {
       border: none;
@@ -154,11 +189,11 @@
       width: 100%
     }
     .post_content td,.post_content th {
-      border: 1px solid #dcdcdc;
+      border: 1px solid #c0c0c0;
       padding: .5em
     }
     .post_content th {
-      background-color: hsla(0,0%,59%,.05);
+      background-color: rgba(153, 153, 153, 0.2);
       color: inherit;
       font-weight: 700
     }
@@ -182,33 +217,47 @@
       width: 30%;
       height: 50px;
       margin: 2px;
-      font-size: 16px;
       border: none;
       cursor: pointer;
       color: #fff;
-      background-color: #00000011;
     }
     #navigation-buttons button:hover {
-      background: #0078d4;
+      background-color: var(--primary-color-2);
     }
-    #toggle-gray{
+    #prev-button{
+      background: no-repeat center/contain url('docs/chevron-up.svg');
+    }
+    #next-button{
+      background: no-repeat center/contain url('docs/chevron-down.svg');
+    }
+    #gray-animation {
       position: absolute;
       height: 30px;
-      width: 35px;
+      width: 30px;
       right: 20px;
       top: 10px;
-      border-radius: 10px;
-      border:transparent;
-      cursor: pointer;
     }
-    #toggle-gray.original {
-      background: #030303;
-      color: #ffffff;
+    #gray-animation svg {
+      filter: brightness(0) invert(1);
+    }
+    #toggle-dark-mode {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      left: 20px;
+      top: 10px;
+    }
+    #toggle-dark-mode svg {
+      filter: brightness(0) invert(1);
     }
     /* 高亮选中项的样式 */
     .selected {
-      background-color: #0078d428;
+      background-color: var(--primary-color-2);
       border-radius: 5px;
+    }
+    /* 表示已学过的样式 */
+    .learned {
+      color: var(--text-learned);
     }
 
     /* 搜索页面样式 */
@@ -226,7 +275,7 @@
       padding: 15px 0;
     }
     #search-intro p{
-      color: #333;
+      color: var(--text-color);
       padding: 0px 2px;
     }
     #close-popup {
@@ -234,17 +283,17 @@
       right: 0;
       background: #ffffff1c;
       height: 30px;
-      border: transparent;
       font-size: 25px;
       text-align: center;
       color: #000000ad;
       cursor: pointer;
       border-radius: 10px;
+      border: transparent;
       z-index: 20;
-      padding: 0px 18px;
+      padding: 0px 10px;
       margin: 7px 12px;
+      transition: color 0.2s ease;
     }
-
     #close-popup:hover {
       color: #db1010;
       background: #ffffff5d;
@@ -270,8 +319,8 @@
       transition: 0.1s ease-in-out;
     }
     #level-tag:hover {
-      color: rgb(0, 0, 0);
-      border: 4px solid #030303;
+      color: var(--text-color);
+      border: 4px solid var(--text-color);
       font-size: 17px;
       transition: 0.1s ease-in-out;
     }
@@ -294,7 +343,8 @@
         <li><a href="#" data-type="補充">補充</a></li>
         <li><a href="#" data-type="検索">検索</a></li>
       </ul>
-      <button id="toggle-gray">译</button>
+      <div id="toggle-dark-mode"></div>
+      <div id="gray-animation"></div>
     </nav>
   </header>
   <main>
@@ -307,8 +357,8 @@
     <div id="detail-content"></div>
   </div>
   <div id="navigation-buttons">
-    <button id="prev-button">前へ</button>
-    <button id="next-button">次へ</button>
+    <button id="prev-button"></button>
+    <button id="next-button"></button>
   </div>
     <!-- grammar_data.json:
     [
@@ -327,6 +377,7 @@
             "item": "n0-aguneru",
             "content": "<div class=\"post_content\"><h3>備考</h3></div>"
         },...-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.10.1/lottie.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -346,45 +397,79 @@ document.addEventListener('DOMContentLoaded', () => {
   let isDragging = false;
   let isSearchPage = false;
   const state = {
-    selectedCategory: 'レベル順', // 当前选中的分类
+    selectedCategory: 'レベル順', // 默认页面
     isGrayEnabled: true, // 灰色字体开关
-    filteredGrammarData: [], // 当前分类的语法数据
+    isDarkModeEnabled: false, // 黑暗模式
+    filteredGrammarData: [], // 当前页面的语法数据
     categoryIndexes: {'五十音順': -1,'レベル順': -1,'補充': -1},
     learnedGrammar: [] // 存储学过的语法
   };
-  let isLearnedColor = '#ccc';
-
   // DOM 元素
-  const toggleButton = document.getElementById('toggle-gray'); // 灰色字体切换按钮
   const contentDiv = document.getElementById('content'); // 主内容容器
   const detailPopup = document.getElementById('detail-popup'); // 弹窗容器
   const detailHeader = document.getElementById('detail-header'); // 弹窗标题
   const detailContent = document.getElementById('detail-content'); // 弹窗内容
   const prevButton = document.getElementById('prev-button'); // 上一项按钮
   const nextButton = document.getElementById('next-button'); // 下一项按钮
+  const darkModeButton = document.getElementById('toggle-dark-mode');  // 获取亮暗按钮
 
-
-  // 更新所有带 .gray 的元素颜色
-  function updateGrayElements() {
-    document.querySelectorAll('.gray').forEach(element => {
-      element.style.color = state.isGrayEnabled ? '#00000033' : 'transparent';
-    });
-  }
-
-  // 切换灰色字体开关
-  toggleButton.addEventListener('click', () => {
+  // 切换灰色字体开关（更新所有带 .gray 的元素颜色）
+  document.getElementById('gray-animation').addEventListener('click', () => {
     state.isGrayEnabled = !state.isGrayEnabled; // 切换状态
-    updateToggleButton(); // 更新按钮状态
+    updateGrayAnimation(); // 更新按钮状态
     updateGrayElements(); // 更新灰色字体显示
     saveState();
   });
-  function updateToggleButton() {
+  // 初始化 Lottie 动画
+  const grayAnimation = lottie.loadAnimation({
+    container: document.getElementById('gray-animation'), // 动画容器
+    renderer: 'svg',
+    loop: false,
+    autoplay: false,
+    path: 'docs/visibility-V3.json', // 动画 JSON 文件路径
+  });
+  function updateGrayAnimation() {
     if (state.isGrayEnabled) {
-      toggleButton.textContent = '译';
-      toggleButton.classList.remove('original');
+      grayAnimation.setDirection(-1);
+      grayAnimation.play();
     } else {
-      toggleButton.textContent = '原';
-      toggleButton.classList.add('original');
+      grayAnimation.setDirection(1);
+      grayAnimation.play();
+    }
+  }
+  function updateGrayElements() {
+    document.querySelectorAll('.gray').forEach(element => {
+      if (state.isGrayEnabled) {
+        element.classList.remove('active');
+      } else {
+        element.classList.add('active');
+      }
+    });
+  }
+
+  // 切换亮暗模式
+  document.getElementById('toggle-dark-mode').addEventListener('click', () => {
+    state.isDarkModeEnabled = !state.isDarkModeEnabled;
+    updateDarkMode();
+    saveState();
+  });
+  const darkAnimation = lottie.loadAnimation({
+    container: document.getElementById('toggle-dark-mode'),
+    renderer: 'svg',
+    loop: false,
+    autoplay: false,
+    path: 'docs/sun-moon.json',
+  });
+  function updateDarkMode() {
+    const toggleButton = document.getElementById('toggle-dark-mode');
+    if (state.isDarkModeEnabled) {
+      document.body.classList.add('dark-mode');
+      darkAnimation.setDirection(1);
+      darkAnimation.play();
+    } else {
+      document.body.classList.remove('dark-mode');
+      darkAnimation.setDirection(-1);
+      darkAnimation.play();
     }
   }
 
@@ -401,13 +486,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (savedState) {
       Object.assign(state, JSON.parse(savedState));
       updateGrayElements();
-      toggleButton.textContent = state.isGrayEnabled ? '译' : '原';
     }
 
     // 根据恢复的状态设置按钮样式和文本
     updateLearnedGrammarStyles();
-    updateToggleButton();
+    updateGrayAnimation();
     updateGrayElements();
+    updateDarkMode();
     // 恢复导航栏高亮状态
     const activeNavItem = document.querySelector(`nav a[data-type="${state.selectedCategory}"]`);
     if (activeNavItem) {activeNavItem.classList.add('active');}
@@ -453,7 +538,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
           // 根据学习状态更新样式
           if (state.learnedGrammar.includes(item.name)) {
-            link.style.color = isLearnedColor; // 已学过设置为灰色
+            link.classList.add('learned'); // 添加 "learned" 类
+          } else {
+            link.classList.remove('learned'); // 确保未学过的移除类
           }
 
           link.addEventListener('click', event => {
@@ -536,8 +623,8 @@ document.addEventListener('DOMContentLoaded', () => {
           .map(item => {
             // 检查是否学过，并动态设置样式
             const isLearned = state.learnedGrammar.includes(item.name);
-            const colorStyle = isLearned ? `style="color: ${isLearnedColor};"` : '';
-            return `<li><a href="#" data-item="${item.item}" data-level="${item.level}" ${colorStyle}>${item.name}</a></li>`;
+            const learnedClass = isLearned ? 'learned' : '';
+            return `<li><a href="#" data-item="${item.item}" data-level="${item.level}" class="${learnedClass}">${item.name}</a></li>`;
           })
           .join('');
     } else {
@@ -575,9 +662,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('#content li a').forEach(link => {
       const name = link.textContent;
       if (state.learnedGrammar.includes(name)) {
-        link.style.color = isLearnedColor; // 设置为灰色
+        link.classList.add('learned');
       } else {
-        link.style.color = ''; // 恢复默认颜色
+        link.classList.remove('learned');
       }
     });
   }
@@ -596,18 +683,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 更新按钮状态
     if (state.learnedGrammar.includes(name)) {
-      levelTag.style.backgroundColor = isLearnedColor; // 已学过设置灰色
+      levelTag.classList.add('learned');
     } else {
-      levelTag.style.backgroundColor = ''; // 未学过恢复默认颜色
+      levelTag.classList.remove('learned');
     }
     // 添加点击事件
     levelTag.onclick = () => {
       if (state.learnedGrammar.includes(name)) {
-        state.learnedGrammar = state.learnedGrammar.filter(item => item !== name); // 移除学过的语法
-        levelTag.style.backgroundColor = ''; // 恢复默认颜色
+        state.learnedGrammar = state.learnedGrammar.filter(item => item !== name); // 移除学过状态
+        levelTag.classList.remove('learned');
       } else {
         state.learnedGrammar.push(name); // 添加到学过列表
-        levelTag.style.backgroundColor = isLearnedColor; // 设置为灰色
+        levelTag.classList.add('learned');
       }
       updateLearnedGrammarStyles(); // 更新首页列表样式
       saveState();
@@ -620,7 +707,7 @@ document.addEventListener('DOMContentLoaded', () => {
     detailContent.querySelectorAll('a').forEach(link => {
       link.addEventListener('click', event => {
         const href = link.getAttribute('href');
-        
+
         // 检查链接是否是语法链接（匹配 /grammar/{item}/ 或 /jltct/{item}/）
         const match = href.match(/\/(grammar|jltct)\/(.*)\//);
         if (match && match[2]) {
@@ -628,24 +715,23 @@ document.addEventListener('DOMContentLoaded', () => {
           event.preventDefault(); // 阻止默认行为
           event.stopPropagation(); // 阻止事件冒泡
 
-          const type = match[1]; // 数据类型：grammar 或 jltct
           const itemKey = match[2]; // 提取 item 值
           const relatedItem = grammarData.find(grammar => grammar.item === itemKey);
 
           if (relatedItem) {
             const detail = grammarDetails.find(detailItem => detailItem.item === itemKey);
-            // 加载并填充对应语法内容
             renderDetailContent(
               relatedItem.name,
-              detail ? detail.content : '<p>无法找到对应内容</p>'
+              detail ? detail.content : '<p>无法找到对应内容</p>',
+              relatedItem.level
             );
           } else {
-            renderDetailContent('未知语法', '<p>无法找到对应语法</p>');
+            // 如果不是语法链接，在新标签中打开
+            window.open(href, '_blank');
           }
         } else {
-          // 非语法链接，在新标签中打开
-          event.preventDefault(); // 阻止默认行为
-          window.open(href, '_blank'); // 新标签打开
+          // 如果不是语法链接，在新标签中打开
+          window.open(href, '_blank');
         }
       });
     });
