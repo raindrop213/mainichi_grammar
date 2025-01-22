@@ -21,6 +21,7 @@
       --gray-text: #00000033;
       --box-shadow-1: 0 2px 10px rgba(0, 0, 0, 0.1);
       --filter: brightness(0) invert(0);
+      --transition: background-color 0.3s ease;
     }
     .dark-mode {
       --primary-color: rgb(84, 133, 92);
@@ -45,6 +46,7 @@
       padding: 0;
       background: var(--background-bg-1);
       color: var(--text-color);
+      transition: var(--transition);
     }
     header {
       text-align: center;
@@ -55,6 +57,7 @@
       z-index: 1000;
       background: var(--primary-color);
       box-shadow: var(--box-shadow-1);
+      transition: var(--transition);
     }
     nav ul {
       padding: 0;
@@ -84,6 +87,7 @@
       border-radius: 5px;
       box-shadow: var(--box-shadow-1);
       background: var(--background-bg-2);
+      transition: var(--transition);
     }
     section {
       margin-bottom: 20px;
@@ -97,6 +101,7 @@
       z-index: 2;
       margin: 0;
       border-bottom: 2px solid var(--primary-color);
+      transition: var(--transition);
     }
     ul {
       list-style: none;
@@ -108,6 +113,7 @@
     a {
       color: var(--primary-color);
       text-decoration: none;
+      transition: color 0.3s ease;
     }
     a:hover {
       text-decoration: underline;
@@ -147,6 +153,7 @@
       font-weight: bold;
       padding: 10px;
       z-index: 10;
+      transition: var(--transition);
     }
     #detail-content {
       padding: 0px 20px 45px 20px;
@@ -185,6 +192,7 @@
     }
     .post_content table {
       border: none;
+      transition: var(--transition);
       border-collapse: collapse;
       border-spacing: 0;
       line-height: 1.6;
@@ -339,7 +347,7 @@
       border-radius: 5px;
       padding: 10px 20px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      transition: var(--transition);
       opacity: 0.7;
 
       /* 使用 Flexbox 居中文本 */
