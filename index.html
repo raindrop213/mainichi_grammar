@@ -334,18 +334,35 @@
       bottom: 10px;
       background-color: var(--primary-color);
       color: var(--text-header);
-      font-size: 16px;
+      font-size: 40px;
       border: none;
       border-radius: 5px;
       padding: 10px 20px;
       cursor: pointer;
       transition: background-color 0.3s ease;
+      opacity: 0.7;
+
+      /* 使用 Flexbox 居中文本 */
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     #learned-button.completed {
       background-color: var(--text-learned);
       color: var(--background-bg-1);
     }
+
+    /* #learned-animation {
+      position: absolute;
+      height: 60px;
+      width: 60px;
+      left: 20px;
+      bottom: 10px;
+    }
+    #learned-animation svg{
+      filter: var(--filter);
+    } */
   </style>
 </head>
 <body>
@@ -369,7 +386,8 @@
     <div id="level-tag"></div>
     <div id="detail-header"></div>
     <div id="detail-content"></div>
-    <button id="learned-button">✔️ 完成</button>
+    <button id="learned-button">☒</button>
+    <div id="learned-animation"></div>
   </div>
   <div id="navigation-buttons">
     <button id="prev-button"></button>
@@ -686,8 +704,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 渲染弹窗内容
   function renderDetailContent(name, content, level) {
-    detailHeader.innerHTML = `${name}`;// 设置弹窗标题
-    detailContent.innerHTML = `${content}`;// 填充弹窗内容
+    detailHeader.innerHTML = name;// 设置弹窗标题
+    detailContent.innerHTML = content;// 填充弹窗内容
 
     // 更新 level-tag
     const levelTag = document.getElementById('level-tag');
@@ -709,23 +727,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const learnedButton = document.getElementById('learned-button');
     if (state.learnedGrammar.includes(name)) {
       learnedButton.classList.add('completed');
-      learnedButton.textContent = '✔️ 完成';
+      learnedButton.textContent = '☑';
     } else {
       learnedButton.classList.remove('completed');
-      learnedButton.textContent = '❌ 待学习';
+      learnedButton.textContent = '☒';
     }
     // 添加点击事件
+    // learnedButton.addEventListener('click', () => {
     learnedButton.onclick = () => {
       if (state.learnedGrammar.includes(name)) {
         state.learnedGrammar = state.learnedGrammar.filter(item => item !== name); // 移除学过状态
         learnedButton.classList.remove('completed');
-        learnedButton.textContent = '❌ 待学习';
+        learnedButton.textContent = '☒';
         console.log("移除学过状态")
+
+        // learnedAnimation.setDirection(-1); // 播放 "未完成" 的动画
+        // learnedAnimation.play();
       } else {
         state.learnedGrammar.push(name); // 添加到学过列表
         learnedButton.classList.add('completed');
-        learnedButton.textContent = '✔️ 完成';
+        learnedButton.textContent = '☑';
         console.log("添加到学过列表")
+
+        // learnedAnimation.setDirection(1); // 播放 "已完成" 的动画
+        // learnedAnimation.play();
       }
       updateLearnedGrammarStyles(); // 更新首页列表样式
       saveState();
