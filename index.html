@@ -20,7 +20,7 @@
       --background-bg-f: rgb(0, 0, 0);
       --gray-text: #00000033;
       --box-shadow-1: 0 2px 10px rgba(0, 0, 0, 0.1);
-      --filter: brightness(0) invert(0);
+      --filter: brightness(0) invert(0.3);
       --transition: background-color 0.3s ease;
     }
     .dark-mode {
@@ -36,7 +36,7 @@
       --background-bg-f: rgb(255, 255, 255);
       --gray-text: #ffffff20;
       --box-shadow-1: 0 1px 10px rgba(255, 255, 255, 0.2);
-      --filter: brightness(0) invert(1);
+      --filter: brightness(0) invert(0.7);
     }
 
     body {
@@ -47,6 +47,12 @@
       background: var(--background-bg-1);
       color: var(--text-color);
       transition: var(--transition);
+    }
+    .no-select {
+      -webkit-user-select: none; /* Safari */
+      -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* Internet Explorer/Edge */
+      user-select: none; /* 标准 */
     }
     header {
       text-align: center;
@@ -246,7 +252,7 @@
       justify-content: center;
       z-index: 10000;
     }
-    #navigation-buttons button {
+    #navigation-buttons button{
       max-width: 400px;
       width: 40%;
       height: 100%;
@@ -254,20 +260,38 @@
       border: none;
       cursor: pointer;
       color: #fff;
+      background-color:transparent;
       transition: background-color 0.2s ease;
+      transition: transform 0.2s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
-    #navigation-buttons button:active {
+    #navigation-buttons button:active{
       background-color: var(--primary-color-2);
+      transform: scaleY(1.2)
     }
-    #prev-button{
+    .arrows {
+      width: 60px;
+      height: 60px;
+      background-size: contain; /* 适应容器的尺寸 */
+      transition: transform 0.2s ease-out;
+    }
+    #prev-button .arrows{
       background: no-repeat center/contain url('docs/chevron-up.svg');
       filter: var(--filter);
-      
     }
-    #next-button{
+    #next-button .arrows{
       background: no-repeat center/contain url('docs/chevron-down.svg');
       filter: var(--filter);
     }
+    #prev-button:active .arrows {
+      transform: scaleX(0.9) translateY(-10px);
+    }
+    #next-button:active .arrows {
+      transform: scaleX(0.9) translateY(10px);
+    }
+    
     #gray-animation {
       position: absolute;
       height: 30px;
@@ -312,7 +336,7 @@
       max-width: 790px;
       height: 40px;
       font-size: 16px;
-      background-color: #ddd;
+      background-color: #f0f0f0;
       border: transparent;
     }
     #search-intro p{
@@ -342,24 +366,28 @@
 
     #learned-button {
       position: absolute;
-      height: 60px;
-      width: 60px;
+      height: 70px;
+      width: 70px;
       right: 20px;
       bottom: 60px;
-      background-color: var(--primary-color);
+      background-color: var(--primary-color-2);
       color: var(--text-header);
-      font-size: 40px;
+      font-size: 50px;
       border: none;
-      border-radius: 5px;
+      border-radius: 10px;
       padding: 10px 20px;
       cursor: pointer;
-      transition: var(--transition);
+      transition: all 0.2s ease;
       opacity: 0.7;
 
       /* 使用 Flexbox 居中文本 */
       display: flex;
       justify-content: center;
       align-items: center;
+    }
+    #learned-button:active{
+      border-radius: 40px;
+      transform: scale(1.1) rotate(-60deg);
     }
 
     #learned-button.completed {
@@ -399,12 +427,12 @@
   <div id="detail-popup">
     <div id="detail-header"></div>
     <div id="detail-content"></div>
-    <button id="learned-button">☒</button>
+    <button id="learned-button" class="no-select">☒</button>
     <div id="learned-animation"></div>
   </div>
-  <div id="navigation-buttons">
-    <button id="prev-button"></button>
-    <button id="next-button"></button>
+  <div id="navigation-buttons" class="no-select">
+    <button id="prev-button"><div class="arrows"></div></button>
+    <button id="next-button"><div class="arrows"></div></button>
   </div>
     <!-- grammar_data.json:
     [
@@ -912,7 +940,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-
+  document.querySelector('.no-select').addEventListener('wheel', event => {
+    event.preventDefault(); // 禁止滚动
+  }, { passive: false });
+  document.querySelector('.no-select').addEventListener('touchmove', event => {
+    event.preventDefault(); // 禁止所有滚动
+  }, { passive: false });
   /* =========================== 数据加载 =========================== */
 
   // 加载数据
