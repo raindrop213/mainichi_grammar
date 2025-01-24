@@ -19,9 +19,17 @@
       --background-bg-2: rgb(255, 255, 255);
       --background-bg-f: rgb(0, 0, 0);
       --gray-text: #00000033;
-      --box-shadow-1: 0 2px 10px rgba(0, 0, 0, 0.1);
+      --box-shadow-1: 0 1px 7px rgba(0, 0, 0, 0.2);
+      --box-shadow-2: 0 1px 5px rgba(0, 0, 0, 0.2);
       --filter: brightness(0) invert(0.3);
       --transition: background-color 0.3s ease;
+      --color-n5: rgb(228, 121, 79);
+      --color-n4: rgb(233, 188, 9);
+      --color-n3: rgb(159, 196, 73); 
+      --color-n2: rgb(63, 156, 70);
+      --color-n1: rgb(49, 163, 175);
+      --color-n0: rgb(134, 94, 197);
+      --color-nn: rgb(163, 163, 163);
     }
     .dark-mode {
       --primary-color: rgb(87,133,94);
@@ -34,8 +42,9 @@
       --background-bg-1: rgb(12, 12, 12);
       --background-bg-2: rgb(26, 26, 26);
       --background-bg-f: rgb(255, 255, 255);
-      --gray-text: #ffffff20;
-      --box-shadow-1: 0 1px 10px rgba(255, 255, 255, 0.2);
+      --gray-text: #ffffff30;
+      --box-shadow-1: 0 1px 7px rgba(255, 255, 255, 0.2);
+      --box-shadow-2: 0 1px 5px rgba(255, 255, 255, 0.2);
       --filter: brightness(0) invert(1);
     }
 
@@ -56,7 +65,7 @@
     }
     header {
       text-align: center;
-      position: fixed;
+      position: sticky;
       top: 0;
       height: 50px;
       width: 100%;
@@ -66,7 +75,8 @@
       transition: var(--transition);
     }
     nav ul {
-      padding: 0;
+      padding: 12px;
+      margin: 0;
       display: flex;
       list-style: none;
       justify-content: center;
@@ -75,23 +85,24 @@
       margin: 0 15px;
     }
     nav a {
-      color: var(--text-header);
+      color: #ffffff;
       text-decoration: none;
       font-weight: bold;
+      transition: color 0.2s ease;
     }
     nav a:hover {
       text-decoration: underline;
+      color: #ffffffa2;
     }
     nav a.active {
       color: var(--highlight-text);
       text-decoration: underline;
     }
-    main {
+    .main {
       position: relative;
       max-width: 800px;
       margin: auto;
-      padding: 50px 20px 20px 20px;
-      border-radius: 5px;
+      padding: 3px 20px 50px 20px;
       box-shadow: var(--box-shadow-1);
       background: var(--background-bg-2);
       transition: var(--transition);
@@ -116,15 +127,43 @@
     }
     li {
       margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     a {
       color: var(--primary-color);
       text-decoration: none;
       transition: color 0.3s ease;
+      margin-right: auto; /* 让 a 内容靠左 */
     }
     a:hover {
       text-decoration: underline;
     }
+    .item-level {
+      font-size: 10px;
+      color: var(--background-bg-2);
+      font-weight: bold;
+      font-family:system-ui, sans-serif;
+      border-radius: 6px;
+      padding: 0 3px;
+      box-shadow:inset var(--box-shadow-2);
+
+      white-space: nowrap; /* 禁止子元素换行 */
+      margin-left: auto; /* 让 div 内容靠右 */
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    .item-level.n5 { color: var(--color-n5);}
+    .item-level.n4 { color: var(--color-n4);}
+    .item-level.n3 { color: var(--color-n3);}
+    .item-level.n2 { color: var(--color-n2);}
+    .item-level.n1 { color: var(--color-n1);}
+    .item-level.n0 { color: var(--color-n0);}
+    .item-level.nn { color: var(--color-nn);}
+    
     #detail-popup {
       position: fixed;
       top: 50px;
@@ -243,7 +282,7 @@
       margin-bottom: .25em;
       opacity: .8
     }
-    #navigation-buttons {
+    .navigation-buttons {
       position: fixed;
       bottom: 10px;
       height: 8%;
@@ -252,7 +291,7 @@
       justify-content: center;
       z-index: 10000;
     }
-    #navigation-buttons button{
+    .navigation-buttons button{
       max-width: 400px;
       width: 40%;
       height: 100%;
@@ -267,7 +306,7 @@
       justify-content: center;
       align-items: center;
     }
-    #navigation-buttons button:active{
+    .navigation-buttons button:active{
       background-color: var(--primary-color-2);
       transform: scaleY(1.2)
     }
@@ -293,7 +332,7 @@
     }
     
     #gray-animation {
-      position: absolute;
+      position: fixed;
       height: 30px;
       width: 30px;
       right: 20px;
@@ -304,7 +343,7 @@
       filter: brightness(0) invert(1);
     }
     #toggle-dark-mode {
-      position: absolute;
+      position: fixed;
       width: 30px;
       height: 30px;
       left: 20px;
@@ -356,13 +395,13 @@
       z-index: 100;
       transition: 0.2s ease-in-out;
     }
-    #level-tag.n5 { color: rgb(192, 43, 71); }
-    #level-tag.n4 { color: rgb(252, 213, 61); }
-    #level-tag.n3 { color: rgb(172,204,97); }
-    #level-tag.n2 { color: rgb(65,138,71); }
-    #level-tag.n1 { color: rgb(6, 132, 146); }
-    #level-tag.n0 { color: rgb(58, 74, 221); }
-    #level-tag.nn { color: rgb(153, 50, 204); }
+    #level-tag.n5 { color: var(--color-n5) }
+    #level-tag.n4 { color: var(--color-n4) }
+    #level-tag.n3 { color: var(--color-n3) }
+    #level-tag.n2 { color: var(--color-n2) }
+    #level-tag.n1 { color: var(--color-n1) }
+    #level-tag.n0 { color: var(--color-n0) }
+    #level-tag.nn { color: var(--color-nn) }
 
     #learned-button {
       position: absolute;
@@ -395,6 +434,37 @@
       color: var(--background-bg-1);
     }
 
+    .spacer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #7f7f7f47;
+      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 12px;
+    }
+    hr {
+      height: 2px;
+      border:none;
+      border-bottom: 2px dashed #7f7f7f3b;
+    }
+
+    /* 修改滚动条 */
+    ::-webkit-scrollbar {
+      width: 12px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--background-bg-2);
+    }
+    body::-webkit-scrollbar-thumb {
+      background: var(--primary-color); 
+      border: 1px solid var(--background-bg-2);
+    }
+    div::-webkit-scrollbar-thumb {
+      background: var(--secondary-color); 
+      border: 1px solid var(--background-bg-2);
+    }
+
+
     /* #learned-animation {
       position: absolute;
       height: 60px;
@@ -420,9 +490,11 @@
       <div id="gray-animation"></div>
     </nav>
   </header>
-  <main>
+  <div class="main">
     <div id="content"></div>
-  </main>
+    <hr>
+    <div class="spacer">⊹ DATA FROM ©MAINICHI-NONBIRI ⊹</div>
+  </div>
   <div id="button-popup"></div>
   <div id="detail-popup">
     <div id="detail-header"></div>
@@ -430,7 +502,7 @@
     <button id="learned-button" class="no-select">☒</button>
     <div id="learned-animation"></div>
   </div>
-  <div id="navigation-buttons" class="no-select">
+  <div class="navigation-buttons no-select">
     <button id="prev-button"><div class="arrows"></div></button>
     <button id="next-button"><div class="arrows"></div></button>
   </div>
@@ -585,11 +657,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 渲染分类内容
   function renderContent(categoryType) {
-
     isSearchPage = false; // 设置为非搜索页
-    const navigationButtons = document.getElementById('navigation-buttons');
-    if (navigationButtons) {navigationButtons.style.display = 'flex';}
-
     contentDiv.innerHTML = '';
     state.filteredGrammarData = [];
     if (!categories[categoryType]) return;
@@ -607,8 +675,13 @@ document.addEventListener('DOMContentLoaded', () => {
           state.filteredGrammarData.push(item);
           const listItem = document.createElement('li');
           const link = document.createElement('a');
+          const levelDiv = document.createElement('div');
           link.href = '#';
+          link.id = item.item;
           link.textContent = item.name;
+          levelDiv.textContent = item.level; // 将 level 显示在 div 中
+          levelDiv.classList.add('item-level'); // 添加一个样式类，便于后续样式控制
+          levelDiv.classList.add(toHalfWidth(item.level).toLowerCase()); // 转换为半角并动态添加 class
 
           // 根据学习状态更新样式
           if (state.learnedGrammar.includes(item.name)) {
@@ -624,6 +697,7 @@ document.addEventListener('DOMContentLoaded', () => {
             saveState(); // 保存状态
           });
           listItem.appendChild(link);
+          listItem.appendChild(levelDiv);
           list.appendChild(listItem);
         });
 
@@ -651,17 +725,17 @@ document.addEventListener('DOMContentLoaded', () => {
       <input id="search-input" type="text" placeholder="語法名を検索する">
       <div id="search-intro">
         <p>本站内容全部源自「<a href="https://mainichi-nonbiri.com/" target="_blank">毎日のんびり日本語教師</a>」</p>
-        <p>因苦于源站这部分糟糕的交互体验，遂架设了此站</p>
+        <p>因源站这部分内容的交互体验不佳，遂架设了此站</p>
         <p>另外源站还汇聚了大量优质日语学习资源，很有用</p>
         <p>！！！请不要范围式地分享本站，自个儿用就好了</p>
         <p>最后还在奋斗中的同学早日达成 Ｎ１★*‧٩(ˊᗜˋ*)و✧*‧</p>
-        <p style="color:#ccc;font-size:12px;">Update: ${update}</p>
+        <p style="opacity:.4;font-size:12px;">Update: ${update}</p>
       </div>
       <ul id="search-results"></ul>
     `;
 
     // 隐藏导航按钮
-    const navigationButtons = document.getElementById('navigation-buttons');
+    const navigationButtons = document.querySelector('navigation-buttons');
     if (navigationButtons) {
       navigationButtons.style.display = 'none';
     }
@@ -822,8 +896,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     });
-    
-    detailPopup.scrollTo(0, 0); // 滚动到顶部
+    detailContent.scrollTo(0, 0); // 滚动到顶部
   }
 
   // 点击页面空白处隐藏弹窗
@@ -831,7 +904,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const isClickOnHeader = event.target.closest('header');
     const isClickInsidePopup = detailPopup.contains(event.target);
     const isClickOnLink = event.target.tagName === 'A'; 
-    const isClickOnNavigationButtons = event.target.closest('#navigation-buttons');
+    const isClickOnNavigationButtons = event.target.closest('.navigation-buttons');
     if (!isClickInsidePopup && !isClickOnLink && !isClickOnHeader && !isClickOnNavigationButtons) {
       AddHide(detailPopup);
     }
