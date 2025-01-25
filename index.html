@@ -21,7 +21,7 @@
       --gray-text: #00000033;
       --box-shadow-1: 0 1px 7px rgba(0, 0, 0, 0.2);
       --box-shadow-2: 0 1px 5px rgba(0, 0, 0, 0.2);
-      --filter: brightness(0) invert(0.3);
+      --filter: brightness(0) invert(0.2);
       --transition: background-color 0.3s ease;
       --color-n5: rgb(228, 121, 79);
       --color-n4: rgb(233, 188, 9);
@@ -340,8 +340,8 @@
       top: 10px;
       cursor: pointer;
     }
-    #gray-animation svg {
-      filter: brightness(0) invert(1);
+    #gray-animation svg path{
+      stroke: #fff;
     }
     #toggle-dark-mode {
       position: fixed;
@@ -351,8 +351,8 @@
       top: 10px;
       cursor: pointer;
     }
-    #toggle-dark-mode svg {
-      filter: brightness(0) invert(1);
+    #toggle-dark-mode svg path{
+      stroke: #fff;
     }
     /* 高亮选中项的样式 */
     .selected {
@@ -403,29 +403,32 @@
       width: 70px;
       right: 20px;
       bottom: 60px;
-      background-color: var(--primary-color-2);
-      color: var(--text-header);
+      background-color: transparent;
       font-size: 50px;
       border: none;
       border-radius: 10px;
       padding: 10px 20px;
       cursor: pointer;
-      transition: all 0.2s ease;
-      opacity: 0.7;
-
-      /* 使用 Flexbox 居中文本 */
-      display: flex;
+      transition: all 0.2s ease-in-out;
+      display: flex; /* 使用 Flexbox 居中文本 */
       justify-content: center;
       align-items: center;
     }
-    #learned-button:active{
-      border-radius: 40px;
-      transform: scale(1.1) rotate(-60deg);
-    }
-
     #learned-button.completed {
+      stroke: var(--background-bg-2);
       background-color: var(--text-learned);
-      color: var(--background-bg-1);
+      opacity: 0.7;
+    }
+    #learned-button.completed svg path{
+      stroke: var(--background-bg-2);
+    }
+    #learned-animation {
+      position: absolute;
+      height: 60px;
+      width: 60px;
+    }
+    #learned-animation svg path{
+      stroke: var(--text-color);
     }
 
     .spacer {
@@ -460,17 +463,6 @@
       border-right: none;
     }
 
-
-    /* #learned-animation {
-      position: absolute;
-      height: 60px;
-      width: 60px;
-      left: 20px;
-      bottom: 10px;
-    }
-    #learned-animation svg{
-      filter: var(--filter);
-    } */
   </style>
 </head>
 <body>
@@ -495,8 +487,9 @@
   <div id="detail-popup">
     <div id="detail-header"></div>
     <div id="detail-content"></div>
-    <button id="learned-button" class="no-select">☒</button>
-    <div id="learned-animation"></div>
+    <button id="learned-button" class="no-select">
+      <div id="learned-animation"></div>
+    </button>
   </div>
   <div class="navigation-buttons no-select">
     <button id="prev-button"><div class="arrows"></div></button>
@@ -574,11 +567,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateGrayAnimation() {
     if (state.isGrayEnabled) {
       grayAnimation.setDirection(-1);
-      grayAnimation.play();
     } else {
       grayAnimation.setDirection(1);
-      grayAnimation.play();
     }
+    grayAnimation.play();
   }
   function updateGrayElements() {
     document.querySelectorAll('.gray').forEach(element => {
@@ -608,12 +600,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (state.isDarkModeEnabled) {
       document.body.classList.add('dark-mode');
       darkAnimation.setDirection(1);
-      darkAnimation.play();
     } else {
       document.body.classList.remove('dark-mode');
       darkAnimation.setDirection(-1);
-      darkAnimation.play();
     }
+    darkAnimation.play();
   }
 
   /* =========================== 状态管理 =========================== */
@@ -733,7 +724,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
       <ul id="search-results"></ul>
     `;
-    
+
     const searchInput = document.getElementById('search-input');
     const searchIntro = document.getElementById('search-intro');
     const searchResults = document.getElementById('search-results');
@@ -809,6 +800,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+    // 学习checkBox动画
+    const learnedAnimation = lottie.loadAnimation({
+      container: document.getElementById('learned-animation'),
+      renderer: 'svg',
+      loop: false,
+      autoplay: false,
+      path: 'docs/checkBox.json',
+    });
 
   // 渲染弹窗内容
   function renderDetailContent(name, content, level) {
@@ -822,44 +821,32 @@ document.addEventListener('DOMContentLoaded', () => {
     levelTag.className = ''; // 清除旧的 class
     levelTag.classList.add(halfWidthLevel.toLowerCase()); // 添加对应 level 的 class
 
-    // 学习checkBox动画
-    const learnedAnimation = lottie.loadAnimation({
-      container: document.getElementById('learned-animation'),
-      renderer: 'svg',
-      loop: false,
-      autoplay: false,
-      path: 'docs/checkBox.json',
-    });
-
     // 更新学习按钮状态
     const learnedButton = document.getElementById('learned-button');
     if (state.learnedGrammar.includes(name)) {
       learnedButton.classList.add('completed');
-      learnedButton.textContent = '☑';
+      learnedAnimation.setDirection(1); // 播放 "已完成" 的动画
     } else {
       learnedButton.classList.remove('completed');
-      learnedButton.textContent = '☒';
+      learnedAnimation.setDirection(-1); // 播放 "未完成" 的动画
     }
+    learnedAnimation.play();
+    
     // 添加点击事件
-    // learnedButton.addEventListener('click', () => {
+    // learnedButton.addEventListener('click', () => {  // 不能用这个
     learnedButton.onclick = () => {
       if (state.learnedGrammar.includes(name)) {
         state.learnedGrammar = state.learnedGrammar.filter(item => item !== name); // 移除学过状态
         learnedButton.classList.remove('completed');
-        learnedButton.textContent = '☒';
         console.log("移除学过状态")
-
-        // learnedAnimation.setDirection(-1); // 播放 "未完成" 的动画
-        // learnedAnimation.play();
+        learnedAnimation.setDirection(-1); // 播放 "未完成" 的动画
       } else {
         state.learnedGrammar.push(name); // 添加到学过列表
         learnedButton.classList.add('completed');
-        learnedButton.textContent = '☑';
         console.log("添加到学过列表")
-
-        // learnedAnimation.setDirection(1); // 播放 "已完成" 的动画
-        // learnedAnimation.play();
+        learnedAnimation.setDirection(1); // 播放 "已完成" 的动画
       }
+      learnedAnimation.play();
       updateLearnedGrammarStyles(); // 更新首页列表样式
       saveState();
     };
@@ -924,13 +911,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function RemoveHide(detailPopup) {
     detailPopup.classList.remove('hide');
     buttonPopupAnimation.setDirection(1);
-    buttonPopupAnimation.play();
   };
   function AddHide(detailPopup) {
     detailPopup.classList.add('hide');
     buttonPopupAnimation.setDirection(-1);
-    buttonPopupAnimation.play();
   };
+  buttonPopupAnimation.play();
 
   // 转换全角字符为半角字符
   function toHalfWidth(str) {
