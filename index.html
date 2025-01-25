@@ -911,12 +911,13 @@ document.addEventListener('DOMContentLoaded', () => {
   function RemoveHide(detailPopup) {
     detailPopup.classList.remove('hide');
     buttonPopupAnimation.setDirection(1);
+    buttonPopupAnimation.play();
   };
   function AddHide(detailPopup) {
     detailPopup.classList.add('hide');
     buttonPopupAnimation.setDirection(-1);
+    buttonPopupAnimation.play();
   };
-  buttonPopupAnimation.play();
 
   // 转换全角字符为半角字符
   function toHalfWidth(str) {
