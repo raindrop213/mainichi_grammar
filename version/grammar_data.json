@@ -1,0 +1,101 @@
+[
+    {
+        "name": "～あぐねる",
+        "category": "あいうえお",
+        "first": "あ",
+        "level": "Ｎ０",
+        "item": "n0-aguneru",
+        "link": "https://mainichi-nonbiri.com/grammar/n0-aguneru/",
+        "detail": ""
+    },
+    {
+        "name": "～あげる／やる／差し上げる（さしあげる）",
+        "category": "あいうえお",
+        "first": "あ",
+        "level": "Ｎ４",
+        "item": "n4-ageru",
+        "link": "https://mainichi-nonbiri.com/grammar/n4-ageru/",
+        "detail": ""
+    },
+    {
+        "name": "～あっての",
+        "category": "あいうえお",
+        "first": "あ",
+        "level": "Ｎ１",
+        "item": "n1-atteno",
+        "link": "https://mainichi-nonbiri.com/grammar/n1-atteno/",
+        "detail": ""
+    },
+    {
+        "name": "～あまり",
+        "category": "あいうえお",
+        "first": "あ",
+        "level": "Ｎ３",
+        "item": "n3-amari",
+        "link": "https://mainichi-nonbiri.com/grammar/n3-amari/",
+        "detail": ""
+    },
+    {
+        "name": "～あまり／～あまりに／～のあまり／～のあまりに",
+        "category": "あいうえお",
+        "first": "あ",
+        "level": "Ｎ３",
+        "item": "n3-amari-2",
+        "link": "https://mainichi-nonbiri.com/grammar/n3-amari-2/",
+        "detail": ""
+    },
+    {
+        "name": "～ありき",
+        "category": "あいうえお",
+        "first": "あ",
+        "level": "Ｎ０",
+        "item": "n0-ariki",
+        "link": "https://mainichi-nonbiri.com/grammar/n0-ariki/",
+        "detail": ""
+    },
+    {
+        "name": "～間／間に",
+        "category": "あいうえお",
+        "first": "あ",
+        "level": "Ｎ３",
+        "item": "n3-aida",
+        "link": "https://mainichi-nonbiri.com/grammar/n3-aida/",
+        "detail": ""
+    },
+    {
+        "name": "～挙句（あげく）／挙句に／挙句の果てに",
+        "category": "あいうえお",
+        "first": "あ",
+        "level": "Ｎ２",
+        "item": "n2-ageku",
+        "link": "https://mainichi-nonbiri.com/grammar/n2-ageku/",
+        "detail": ""
+    },
+    {
+        "name": "～後に／後で",
+        "category": "あいうえお",
+        "first": "あ",
+        "level": "Ｎ５",
+        "item": "n5-atoni",
+        "link": "https://mainichi-nonbiri.com/grammar/n5-atoni/",
+        "detail": ""
+    },
+    {
+        "name": "～合う",
+        "category": "あいうえお",
+        "first": "あ",
+        "level": "Ｎ３",
+        "item": "n3-au",
+        "link": "https://mainichi-nonbiri.com/grammar/n3-au/",
+        "detail": ""
+    },
+    {
+        "name": "～上がる（あがる）／上げる（あげる）",
+        "category": "あいうえお",
+        "first": "あ",
+        "level": "Ｎ３",
+        "item": "n3-agaru",
+        "link": "https://mainichi-nonbiri.com/grammar/n3-agaru/",
+        "detail": ""
+    }
+]

@@ -1,6 +1,7 @@
 import json
 import scrapy
 import re
+import os
 
 
 class GrammarSpider(scrapy.Spider):
@@ -28,18 +29,29 @@ class GrammarSpider(scrapy.Spider):
         # 提取 <div class="post_content"> 的内容
         content = response.css('div.post_content').get()
 
+        # 提取所有 MP3 链接
+        mp3_links = response.css('a.sounds::attr(data-file)').getall()
+
         if content:
             # 清理 HTML 排版中的空白符，保留标签结构
             content = self.clean_html_whitespace(content)
-            
+
             # 重写 <img> 标签，只保留 data-src 属性
             content = self.rewrite_img_tags(content)
+
+            # 处理 MP3 文件链接，加上 ".mp3" 扩展名
+            mp3_files = [mp3 + ".mp3" for mp3 in mp3_links]
 
             # 将结果保存到列表中
             self.results.append({
                 "item": self.items[response.url],
-                "content": content
+                "content": content,
+                "mp3_files": mp3_files
             })
+
+            # 遍历 MP3 文件并发送请求进行下载
+            for mp3_url in mp3_files:
+                yield scrapy.Request(url=mp3_url, callback=self.download_mp3)
         else:
             self.logger.warning(f"No content found in {response.url}")
 
@@ -73,6 +85,20 @@ class GrammarSpider(scrapy.Spider):
         with open('grammar_detail.json', 'w', encoding='utf-8') as f:
             json.dump(self.results, f, ensure_ascii=False, indent=4)
         self.logger.info("Data saved to grammar_detail.json")
+
+    def download_mp3(self, response):
+        # 获取 URL 中的路径部分，例如 "mp3files/grammarmp3/JP_Grammer_532_01.mp3"
+        url_path = "/".join(response.url.split("/")[-3:])  # 保留最后 3 级路径
+        save_path = os.path.join("mp3_files", url_path)  # 存在本地的路径
+
+        # 确保保存目录存在
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+
+        # 保存 MP3 文件
+        with open(save_path, "wb") as f:
+            f.write(response.body)
+
+        self.logger.info(f"Downloaded MP3: {save_path}")
 
 
 '''
