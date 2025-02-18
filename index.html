@@ -376,7 +376,7 @@
       max-width: 790px;
       height: 40px;
       font-size: 16px;
-      background-color: #f0f0f0;
+      background-color: #cfcfcf;
       border: transparent;
     }
     #search-intro p{
@@ -527,9 +527,9 @@
 document.addEventListener('DOMContentLoaded', () => {
 
   // 数据
-  const update = "2025.01.05"
-  const dataFilePath = `version/20250105_grammar_data.json?version=20250105`; 
-  const detailFilePath = `version/20250105_grammar_detail.json?version=20250105`;
+  const currentVersion = "2025.02.19"; // 当前的版本号
+  const dataFilePath = `version/20250219_grammar_data.json?version=${currentVersion}`;
+  const detailFilePath = `version/20250219_grammar_detail.json?version=${currentVersion}`;
   const categories = {
     '五十音順': ['あいうえお', 'かきくけこ', 'さしすせそ', 'たちつてと', 'なにぬねの', 'はひふへほ', 'まみむめも', 'や　ゆ　よ', 'らりるれろ', 'わ　を　ん'],
     'レベル順': ['Ｎ０文法', 'Ｎ１文法', 'Ｎ２文法', 'Ｎ３文法', 'Ｎ４文法', 'Ｎ５文法'],
@@ -730,7 +730,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <p>另外源站还汇聚了大量优质日语学习资源，很有用</p>
         <p>！！！请不要范围式地分享本站，自个儿用就好了</p>
         <p>最后还在奋斗中的同学早日达成 Ｎ１★*‧٩(ˊᗜˋ*)و✧*‧</p>
-        <p style="opacity:.4;font-size:12px;">Update: ${update}</p>
+        <p style="opacity:.4;font-size:12px;">Update: ${currentVersion}</p>
       </div>
       <ul id="search-results"></ul>
     `;
@@ -1014,11 +1014,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 加载数据
   async function loadData() {
-    const cachedData = localStorage.getItem('grammarData');
-    const cachedDetails = localStorage.getItem('grammarDetails');
-    if (cachedData && cachedDetails) {
-      grammarData = JSON.parse(cachedData);
-      grammarDetails = JSON.parse(cachedDetails);
+    const cachedDataVersion = localStorage.getItem('grammarDataVersion');
+    const cachedDetailsVersion = localStorage.getItem('grammarDetailsVersion');
+
+    if (cachedDataVersion === currentVersion && cachedDetailsVersion === currentVersion) {
+      const cachedData = localStorage.getItem('grammarData');
+      const cachedDetails = localStorage.getItem('grammarDetails');
+      if (cachedData && cachedDetails) {
+        grammarData = JSON.parse(cachedData);
+        grammarDetails = JSON.parse(cachedDetails);
+      }
     } else {
       try {
         const [data, details] = await Promise.all([
@@ -1028,9 +1033,11 @@ document.addEventListener('DOMContentLoaded', () => {
         grammarData = data;
         grammarDetails = details;
 
-        // 缓存数据到 localStorage
+        // 缓存数据到 localStorage 和版本信息
         localStorage.setItem('grammarData', JSON.stringify(grammarData));
         localStorage.setItem('grammarDetails', JSON.stringify(grammarDetails));
+        localStorage.setItem('grammarDataVersion', currentVersion);
+        localStorage.setItem('grammarDetailsVersion', currentVersion);
       } catch (error) {
         console.error('数据加载失败', error);
       }

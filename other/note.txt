@@ -1,0 +1,7 @@
+python grammar_spider/grammar_data.py
+
+cd grammar_spider
+scrapy crawl grammar
+
+background-color: #f0f0f0
+background-color: #88888820

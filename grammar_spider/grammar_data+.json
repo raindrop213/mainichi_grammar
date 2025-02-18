@@ -9,6 +9,15 @@
         "detail": ""
     },
     {
+        "name": "自他対応一覧表",
+        "category": "補充",
+        "first": "じ",
+        "level": "ＮＮ",
+        "item": "%e8%87%aa%e4%bb%96%e5%af%be%e5%bf%9c%e4%b8%80%e8%a6%a7%e8%a1%a8",
+        "link": "https://mainichi-nonbiri.com/tools/%e8%87%aa%e4%bb%96%e5%af%be%e5%bf%9c%e4%b8%80%e8%a6%a7%e8%a1%a8/",
+        "detail": ""
+    },
+    {
         "name": "格助詞の用法一覧",
         "category": "補充",
         "first": "か",
