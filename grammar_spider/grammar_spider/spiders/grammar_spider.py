@@ -30,7 +30,7 @@ class GrammarSpider(scrapy.Spider):
         # 提取 <div class="post_content"> 的内容
         content = response.css('div.post_content').get()
 
-        # 提取 MP3 链接
+        # 提取 MP3 链接（保持原始 URL）
         mp3_links = response.css('a.sounds::attr(data-file)').getall()
         voice = [mp3 + ".mp3" for mp3 in mp3_links]
 
@@ -38,26 +38,44 @@ class GrammarSpider(scrapy.Spider):
             # 清理 HTML 排版中的空白符，保留标签结构
             content = self.clean_html_whitespace(content)
 
-            # 处理 <img> 标签，保留 data-src 或 src
-            content = self.rewrite_img_tags(content)
+            # 处理 <img> 标签，保留 data-src 或 src（保持原始 URL）
+            content = re.sub(r'<noscript>.*?</noscript>', '', content, flags=re.DOTALL)
+            content = re.sub(r'<img [^>]*?data-src="([^"]+)"[^>]*?>', r'<img src="\1">', content)
 
-            # 提取处理后的图片链接（只包含 `src`）
+            # 提取处理后的图片链接（保持原始 URL）
             img_links = re.findall(r'<img src="([^"]+)"', content)
 
-            # 记录 JSON 数据
+            # 下载 MP3 和图片（使用原始 URL）
+            for mp3_url in voice:
+                yield scrapy.Request(url=mp3_url, callback=self.download_mp3)
+            for img_url in img_links:
+                yield scrapy.Request(url=img_url, callback=self.download_image)
+
+            # 仅替换图片和音频链接为本地路径（使用正则精确匹配）
+            # 替换 img 标签的 src 属性
+            content = re.sub(
+                r'(<img\s[^>]*?src=")https?://mainichi-nonbiri.com/([^"]+")',
+                r'\1./files/\2',
+                content,
+                flags=re.IGNORECASE
+            )
+            
+            # 替换 audio 或 a 标签中的音频链接（根据实际 HTML 结构调整）
+            # 示例：处理 a 标签的 data-file 属性（MP3 链接）
+            content = re.sub(
+                r'(<a\s[^>]*?data-file=")https?://mainichi-nonbiri.com/([^"]+")',
+                r'\1./files/\2',
+                content,
+                flags=re.IGNORECASE
+            )
+
+            # 记录 JSON 数据（替换后的路径）
             self.results.append({
                 "item": self.items[response.url],
                 "content": content
             })
-
-            # 下载 MP3 文件
-            for mp3_url in voice:
-                yield scrapy.Request(url=mp3_url, callback=self.download_mp3)
-
-            # 下载图片文件
-            for img_url in img_links:
-                yield scrapy.Request(url=img_url, callback=self.download_image)
         else:
+            self.logger.error(f"Missing content at URL: {response.url}")
             self.logger.warning(f"No content found in {response.url}")
 
 
@@ -70,21 +88,6 @@ class GrammarSpider(scrapy.Spider):
         # 去掉 HTML 文本开头和结尾的多余空白符
         html = re.sub(r'^\s+|\s+$', '', html)
         return html
-
-    def rewrite_img_tags(self, html):
-        """
-        Rewrite HTML's <img> tags to retain only the data-src attribute
-        and remove <noscript> tags entirely.
-        """
-        # Remove <noscript> tags and their content
-        html = re.sub(r'<noscript>.*?</noscript>', '', html, flags=re.DOTALL)
-        
-        # Rewrite <img> tags to keep only the data-src attribute
-        return re.sub(
-            r'<img [^>]*?data-src="([^"]+)"[^>]*?>',
-            r'<img src="\1">',
-            html
-        )
 
     def closed(self, reason):
         # 保存结果到 JSON 文件

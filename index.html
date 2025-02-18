@@ -527,9 +527,9 @@
 document.addEventListener('DOMContentLoaded', () => {
 
   // 数据
-  const currentVersion = "2025.02.19"; // 当前的版本号
-  const dataFilePath = `version/20250219_grammar_data.json?version=${currentVersion}`;
-  const detailFilePath = `version/20250219_grammar_detail.json?version=${currentVersion}`;
+  const currentVersion = "2025.02.20"; // 当前的版本号
+  const dataFilePath = `version/20250220_grammar_data.json?version=${currentVersion}`;
+  const detailFilePath = `version/20250220_grammar_detail.json?version=${currentVersion}`;
   const categories = {
     '五十音順': ['あいうえお', 'かきくけこ', 'さしすせそ', 'たちつてと', 'なにぬねの', 'はひふへほ', 'まみむめも', 'や　ゆ　よ', 'らりるれろ', 'わ　を　ん'],
     'レベル順': ['Ｎ０文法', 'Ｎ１文法', 'Ｎ２文法', 'Ｎ３文法', 'Ｎ４文法', 'Ｎ５文法'],
@@ -863,6 +863,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 处理弹窗内容中的链接
     detailContent.querySelectorAll('a').forEach(link => {
+      if (link.classList.contains('sounds')) {
+        return; // 跳过这个链接的处理
+      }
       link.addEventListener('click', event => {
         const href = link.getAttribute('href');
         const match = href.match(/\/(grammar|jltct)\/(.*)\//);
@@ -1100,5 +1103,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 </script>
+<script type="text/javascript" src="./sounds-multi.js"></script>
 </body>
 </html>
