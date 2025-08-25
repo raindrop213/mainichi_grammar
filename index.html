@@ -187,9 +187,6 @@
       z-index: -1;
     }
 
-    .dragging #detail-popup {
-      opacity: 0.1;
-    }
     /* 添加媒体查询 */
     @media (max-width: 768px) {
       #detail-popup {
@@ -354,6 +351,29 @@
     #toggle-dark-mode svg path{
       stroke: #fff;
     }
+    #only-learned-container {
+      position: fixed;
+      right: 20px;
+      bottom: 120px;
+      color: var(--text-color);
+      font-size: 12px;
+      cursor: pointer;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      background: var(--background-bg-2);
+      padding: 8px 12px;
+      border-radius: 6px;
+      box-shadow: var(--box-shadow-1);
+      z-index: 1000;
+      border: 1px solid var(--primary-color);
+      transition: all 0.2s ease;
+    }
+    #only-learned-container.active {
+      background: var(--primary-color);
+      color: var(--text-header);
+    }
     /* 高亮选中项的样式 */
     .selected {
       background-color: var(--primary-color-2);
@@ -486,6 +506,7 @@
       </ul>
       <div id="toggle-dark-mode"></div>
       <div id="gray-animation"></div>
+      <div id="only-learned-container">復習のみ</div>
     </nav>
   </header>
   <div class="main">
@@ -547,7 +568,8 @@ document.addEventListener('DOMContentLoaded', () => {
     isDarkModeEnabled: false, // 黑暗模式
     filteredGrammarData: [], // 当前页面的语法数据
     categoryIndexes: {'五十音順': -1,'レベル順': -1,'補充': -1},
-    learnedGrammar: [] // 存储学过的语法
+    learnedGrammar: [], // 存储学过的语法
+    onlyLearnedNav: false // 仅在已学过项目间导航
   };
   // DOM 元素
   const contentDiv = document.getElementById('content'); // 主内容容器
@@ -558,6 +580,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const prevButton = document.getElementById('prev-button'); // 上一项按钮
   const nextButton = document.getElementById('next-button'); // 下一项按钮
   const navigationButtons = document.querySelector('.navigation-buttons'); // 上下键按钮
+  const onlyLearnedContainer = document.getElementById('only-learned-container'); // 仅已学导航开关
 
   // 切换灰色字体开关（更新所有带 .gray 的元素颜色）
   document.getElementById('gray-animation').addEventListener('click', () => {
@@ -596,6 +619,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('toggle-dark-mode').addEventListener('click', () => {
     state.isDarkModeEnabled = !state.isDarkModeEnabled;
     updateDarkMode();
+    saveState();
+  });
+  // 仅已学导航开关
+  onlyLearnedContainer.addEventListener('click', () => {
+    state.onlyLearnedNav = !state.onlyLearnedNav;
+    onlyLearnedContainer.classList.toggle('active', state.onlyLearnedNav);
     saveState();
   });
   const darkAnimation = lottie.loadAnimation({
@@ -637,6 +666,9 @@ document.addEventListener('DOMContentLoaded', () => {
     updateGrayAnimation();
     updateGrayElements();
     updateDarkMode();
+    // 同步“仅已学导航”开关
+    const toggleEl = document.getElementById('only-learned-container');
+    if (toggleEl) toggleEl.classList.toggle('active', !!state.onlyLearnedNav);
     // 恢复导航栏高亮状态
     const activeNavItem = document.querySelector(`nav a[data-type="${state.selectedCategory}"]`);
     if (activeNavItem) {activeNavItem.classList.add('active');}
@@ -977,6 +1009,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 上一项和下一项的点击事件
   function updateNavigation(index) {
+    // 若开启仅已学导航，则从当前索引向目标方向寻找下一个已学项
+    if (state.onlyLearnedNav && state.filteredGrammarData.length > 0) {
+      const currentIndex = state.categoryIndexes[state.selectedCategory];
+      const step = index >= currentIndex ? 1 : -1;
+      let probe = index;
+      let foundLearned = false;
+      
+      // 先尝试在当前方向寻找已学项
+      while (probe >= 0 && probe < state.filteredGrammarData.length) {
+        const probeItem = state.filteredGrammarData[probe];
+        const isLearned = state.learnedGrammar.includes(probeItem.name);
+        if (isLearned) { 
+          index = probe; 
+          foundLearned = true;
+          break; 
+        }
+        probe += step;
+      }
+      
+      // 如果当前方向没找到，且是向下导航，则回到第一个已学项
+      if (!foundLearned && step > 0) {
+        for (let i = 0; i < state.filteredGrammarData.length; i++) {
+          const item = state.filteredGrammarData[i];
+          if (state.learnedGrammar.includes(item.name)) {
+            index = i;
+            break;
+          }
+        }
+      }
+      // 如果当前方向没找到，且是向上导航，则跳到最后一个已学项
+      else if (!foundLearned && step < 0) {
+        for (let i = state.filteredGrammarData.length - 1; i >= 0; i--) {
+          const item = state.filteredGrammarData[i];
+          if (state.learnedGrammar.includes(item.name)) {
+            index = i;
+            break;
+          }
+        }
+      }
+    }
+    
     if (index >= 0 && index < state.filteredGrammarData.length) {
       const currentItem = state.filteredGrammarData[index];
       handleLinkClick(currentItem.item); // 显示弹窗内容
@@ -1078,21 +1151,20 @@ document.addEventListener('DOMContentLoaded', () => {
   document.body.addEventListener('touchstart', (event) => {
     if (!event.target.closest('#detail-popup')) {
       isDragging = false; // 初始化为未拖动
-      document.body.classList.remove('dragging'); // 确保没有残留样式
     }
   });
   // 主页面触摸 移动事件
   document.body.addEventListener('touchmove', (event) => {
     if (!event.target.closest('#detail-popup')) {
       isDragging = true;
-      document.body.classList.add('dragging');
+      // 如果弹窗是打开的，立即关闭弹窗
+      if (!detailPopup.classList.contains('hide')) {
+        AddHide(detailPopup);
+      }
     }
   });
   // 主页面触摸 结束事件
   document.body.addEventListener('touchend', () => {
-    if (isDragging) {
-      document.body.classList.remove('dragging');
-    }
     isDragging = false;
   });
 
