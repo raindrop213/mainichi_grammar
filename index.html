@@ -353,6 +353,7 @@
     }
     #only-learned-container {
       position: fixed;
+      width: 80px;
       right: 20px;
       bottom: 120px;
       color: var(--text-color);
@@ -363,7 +364,7 @@
       -ms-user-select: none;
       user-select: none;
       background: var(--background-bg-2);
-      padding: 8px 12px;
+      padding: 8px 0px;
       border-radius: 6px;
       box-shadow: var(--box-shadow-1);
       z-index: 1000;
@@ -374,6 +375,25 @@
       background: var(--primary-color);
       color: var(--text-header);
     }
+    #recordBtn {
+      position: fixed;
+      width: 80px;
+      right: 20px;
+      bottom: 160px;
+      background: var(--background-bg-2);
+      border: 1px solid var(--primary-color);
+      color: var(--text-color);
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: var(--box-shadow-1);
+      font-size: 12px;
+      z-index: 1000;
+    }
+    #importBtn, #exportBtn{
+      display: inline-flex;
+      padding: 8px 8px;
+    }
+
     /* 高亮选中项的样式 */
     .selected {
       background-color: var(--primary-color-2);
@@ -507,6 +527,10 @@
       <div id="toggle-dark-mode"></div>
       <div id="gray-animation"></div>
       <div id="only-learned-container">復習のみ</div>
+      <div id="recordBtn">
+        <div id="importBtn">📥</div>|
+        <div id="exportBtn">📤</div>
+      </div>
     </nav>
   </header>
   <div class="main">
@@ -581,6 +605,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const nextButton = document.getElementById('next-button'); // 下一项按钮
   const navigationButtons = document.querySelector('.navigation-buttons'); // 上下键按钮
   const onlyLearnedContainer = document.getElementById('only-learned-container'); // 仅已学导航开关
+  const exportBtn = document.getElementById('exportBtn'); // 导出按钮
+  const importBtn = document.getElementById('importBtn'); // 导入按钮
 
   // 切换灰色字体开关（更新所有带 .gray 的元素颜色）
   document.getElementById('gray-animation').addEventListener('click', () => {
@@ -1144,6 +1170,62 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     restoreState(); // 确保数据加载完成后恢复状态
   });
+
+  /* =========================== 学习记录导出 / 导入（仅名称） =========================== */
+
+  // 生成带时间戳的文件名（如 learned_grammar_2025-11-13_02-31.json）
+  function generateFilename() {
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const dateStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+    return `learned_grammar_${dateStr}.json`;
+  }
+
+  // 导出学习记录
+  exportBtn.addEventListener('click', () => {
+    const data = {
+      learnedGrammar: state.learnedGrammar,
+      exportedAt: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = generateFilename();
+    a.click();
+    URL.revokeObjectURL(url);
+    alert(`✅ 已导出 ${state.learnedGrammar.length} 条学习记录`);
+  });
+
+  // 导入学习记录
+  importBtn.addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    input.addEventListener('change', event => {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (Array.isArray(imported.learnedGrammar)) {
+            state.learnedGrammar = imported.learnedGrammar;
+            saveState(); // 保存到 localStorage
+            updateLearnedGrammarStyles(); // 更新界面
+            alert(`✅ 成功导入 ${state.learnedGrammar.length} 条学习记录！`);
+          } else {
+            alert("❌ 文件格式不正确。");
+          }
+        } catch (err) {
+          alert("❌ 读取文件失败：" + err.message);
+        }
+      };
+      reader.readAsText(file);
+    });
+    input.click();
+  });
+
 
   /* =========================== 手机端优化 =========================== */
 
